@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-panel text-ink font-sans antialiased;
+}
+
+/* Instrument-panel hairline grid, used behind the equity gauge cluster */
+.instrument-grid {
+  background-image:
+    linear-gradient(to right, theme("colors.panel.line") 1px, transparent 1px),
+    linear-gradient(to bottom, theme("colors.panel.line") 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Tabular figures everywhere numbers appear — Bloomberg-terminal habit */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  @apply font-mono;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
