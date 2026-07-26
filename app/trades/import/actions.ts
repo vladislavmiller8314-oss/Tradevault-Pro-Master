@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { parseCSV } from "@/lib/csv";
 import { detectColumns, buildFromFinishedTrades, buildFromFills, type ImportedTrade } from "@/lib/tradeImport";
+import { zonedTimeToUtc } from "@/lib/timezone";
 
 export async function importTradesCsv(formData: FormData) {
   const supabase = createClient();
@@ -18,6 +19,7 @@ export async function importTradesCsv(formData: FormData) {
 
   const accountId = formData.get("accountId") as string;
   const pointValue = parseFloat(formData.get("pointValue") as string) || 1;
+  const timeZone = (formData.get("timeZone") as string) || "Europe/Berlin";
   const file = formData.get("file") as File | null;
 
   if (!accountId || !file || file.size === 0) {
@@ -37,9 +39,9 @@ export async function importTradesCsv(formData: FormData) {
 
   let imported: ImportedTrade[];
   if (mode === "finished_trades") {
-    imported = buildFromFinishedTrades(dataRows, columns);
+    imported = buildFromFinishedTrades(dataRows, columns, timeZone);
   } else if (mode === "fills") {
-    imported = buildFromFills(dataRows, columns);
+    imported = buildFromFills(dataRows, columns, timeZone);
   } else {
     redirect(
       `/trades/import?error=${encodeURIComponent(
@@ -53,8 +55,15 @@ export async function importTradesCsv(formData: FormData) {
   }
 
   const rowsToInsert = imported!.map((t) => {
-    const priceDiff = t.direction === "Long" ? t.exitPrice - t.entryPrice : t.entryPrice - t.exitPrice;
-    const pnl = priceDiff * t.contracts * pointValue - t.fees;
+    let pnl: number;
+    if (t.pnl !== undefined) {
+      // Datei liefert die P&L bereits mit (z. B. "Net PnL") — direkt übernehmen,
+      // das ist genauer als eine Neuberechnung über den geschätzten Punktwert.
+      pnl = t.pnl;
+    } else {
+      const priceDiff = t.direction === "Long" ? t.exitPrice - t.entryPrice : t.entryPrice - t.exitPrice;
+      pnl = priceDiff * t.contracts * pointValue - t.fees;
+    }
 
     return {
       user_id: user.id,

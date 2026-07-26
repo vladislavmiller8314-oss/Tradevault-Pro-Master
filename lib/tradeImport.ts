@@ -1,3 +1,5 @@
+import { zonedTimeToUtc } from "./timezone";
+
 export interface ImportedTrade {
   instrument: string;
   direction: "Long" | "Short";
@@ -7,6 +9,7 @@ export interface ImportedTrade {
   fees: number;
   openedAt: string; // ISO
   closedAt: string; // ISO
+  pnl?: number; // falls die Datei die P&L bereits mitliefert (dann direkt übernehmen statt neu berechnen)
 }
 
 // Mögliche Spaltenüberschriften je Feld — deckt gängige Exportformate von
@@ -20,9 +23,10 @@ const HEADER_ALIASES: Record<string, string[]> = {
   time: ["time", "fill time", "exec time", "timestamp", "date/time", "transaction time", "datetime", "date"],
   entryPrice: ["entry price", "entry", "buy price", "avg entry price"],
   exitPrice: ["exit price", "exit", "sell price", "avg exit price"],
-  openedAt: ["entry time", "open time", "opened at", "entry date"],
-  closedAt: ["exit time", "close time", "closed at", "exit date"],
+  openedAt: ["entry time", "open time", "opened at", "entry date", "entry date/time"],
+  closedAt: ["exit time", "close time", "closed at", "exit date", "exit date/time"],
   fees: ["commission", "fees", "comm", "commissions"],
+  pnl: ["net pnl", "pnl", "p/l", "profit", "net profit"],
 };
 
 function normalizeHeader(h: string): string {
@@ -39,16 +43,27 @@ function findColumn(headers: string[], field: keyof typeof HEADER_ALIASES): numb
   return -1;
 }
 
+// Robust gegenüber europäischem (1.234,56) und amerikanischem (1,234.56)
+// Zahlenformat: steht sowohl Komma als auch Punkt in der Zahl, entscheidet
+// das zuletzt vorkommende Zeichen, welches davon das Dezimaltrennzeichen ist.
 function parseNumber(raw: string): number {
-  // Entfernt Tausendertrennzeichen/Währungssymbole, wandelt Komma-Dezimal in Punkt um
-  const cleaned = raw.replace(/[^0-9,.-]/g, "").replace(/\.(?=.*\.)/g, "").replace(",", ".");
-  return parseFloat(cleaned) || 0;
+  let s = raw.trim().replace(/[^0-9,.-]/g, "");
+  const lastComma = s.lastIndexOf(",");
+  const lastDot = s.lastIndexOf(".");
+
+  if (lastComma !== -1 && lastDot !== -1) {
+    s = lastComma > lastDot ? s.replace(/\./g, "").replace(",", ".") : s.replace(/,/g, "");
+  } else if (lastComma !== -1) {
+    s = s.replace(",", ".");
+  }
+
+  return parseFloat(s) || 0;
 }
 
 function parseDirection(raw: string): "Long" | "Short" | null {
   const v = raw.trim().toLowerCase();
-  if (["buy", "b", "long", "bot"].includes(v)) return "Long";
-  if (["sell", "s", "short", "sld"].includes(v)) return "Short";
+  if (["buy", "b", "long", "bot", "1", "+1"].includes(v)) return "Long";
+  if (["sell", "s", "short", "sld", "-1"].includes(v)) return "Short";
   return null;
 }
 
@@ -73,6 +88,7 @@ export function detectColumns(headers: string[]): DetectedColumns {
         openedAt: findColumn(headers, "openedAt"),
         closedAt: findColumn(headers, "closedAt"),
         fees: findColumn(headers, "fees"),
+        pnl: findColumn(headers, "pnl"),
       },
     };
   }
@@ -98,23 +114,34 @@ export function detectColumns(headers: string[]): DetectedColumns {
 
 // Baut aus fertigen Trade-Zeilen (bereits Entry+Exit pro Zeile) die
 // ImportedTrade-Liste.
-export function buildFromFinishedTrades(rows: string[][], columns: Record<string, number>): ImportedTrade[] {
+export function buildFromFinishedTrades(
+  rows: string[][],
+  columns: Record<string, number>,
+  timeZone: string
+): ImportedTrade[] {
   const trades: ImportedTrade[] = [];
   for (const row of rows) {
     const instrument = columns.instrument !== -1 ? row[columns.instrument]?.trim() : "";
+    const rawQuantity = columns.quantity !== -1 ? parseNumber(row[columns.quantity]) : 1;
+
+    // Manche Exporte (z. B. Volume Trader Terminal) haben keine eigene
+    // Side-Spalte — die Richtung steckt dann im Vorzeichen der Quantity
+    // (positiv = Long, negativ = Short).
     const sideRaw = columns.side !== -1 ? row[columns.side] : "";
-    const direction = parseDirection(sideRaw) ?? "Long";
-    const contracts = columns.quantity !== -1 ? Math.abs(parseNumber(row[columns.quantity])) : 1;
+    const direction = columns.side !== -1 ? parseDirection(sideRaw) ?? "Long" : rawQuantity < 0 ? "Short" : "Long";
+
+    const contracts = Math.abs(rawQuantity) || 1;
     const entryPrice = parseNumber(row[columns.entryPrice]);
     const exitPrice = parseNumber(row[columns.exitPrice]);
-    const openedAt = columns.openedAt !== -1 ? row[columns.openedAt] : "";
-    const closedAt = columns.closedAt !== -1 ? row[columns.closedAt] : openedAt;
+    const openedAtRaw = columns.openedAt !== -1 ? row[columns.openedAt] : "";
+    const closedAtRaw = columns.closedAt !== -1 ? row[columns.closedAt] : openedAtRaw;
     const fees = columns.fees !== -1 ? Math.abs(parseNumber(row[columns.fees])) : 0;
+    const pnl = columns.pnl !== undefined && columns.pnl !== -1 ? parseNumber(row[columns.pnl]) : undefined;
 
     if (!instrument || !entryPrice || !exitPrice) continue;
 
-    const openedDate = new Date(openedAt || closedAt);
-    const closedDate = new Date(closedAt || openedAt);
+    const openedDate = zonedTimeToUtc(openedAtRaw || closedAtRaw, timeZone);
+    const closedDate = zonedTimeToUtc(closedAtRaw || openedAtRaw, timeZone);
 
     trades.push({
       instrument: instrument.toUpperCase(),
@@ -123,6 +150,7 @@ export function buildFromFinishedTrades(rows: string[][], columns: Record<string
       entryPrice,
       exitPrice,
       fees,
+      pnl,
       openedAt: (isNaN(openedDate.getTime()) ? new Date() : openedDate).toISOString(),
       closedAt: (isNaN(closedDate.getTime()) ? new Date() : closedDate).toISOString(),
     });
@@ -142,7 +170,11 @@ interface Fill {
 // FIFO-Matching: fasst einzelne Kauf-/Verkaufs-Fills pro Instrument zu
 // abgeschlossenen Round-Turn-Trades zusammen — genau wie ein Broker das
 // beim Berechnen der P&L intern macht.
-export function buildFromFills(rows: string[][], columns: Record<string, number>): ImportedTrade[] {
+export function buildFromFills(
+  rows: string[][],
+  columns: Record<string, number>,
+  timeZone: string
+): ImportedTrade[] {
   const fills: Fill[] = [];
 
   for (const row of rows) {
@@ -150,7 +182,7 @@ export function buildFromFills(rows: string[][], columns: Record<string, number>
     const direction = parseDirection(row[columns.side]);
     const quantity = columns.quantity !== -1 ? Math.abs(parseNumber(row[columns.quantity])) : 1;
     const price = parseNumber(row[columns.price]);
-    const time = new Date(columns.time !== -1 ? row[columns.time] : "");
+    const time = zonedTimeToUtc(columns.time !== -1 ? row[columns.time] : "", timeZone);
     const fees = columns.fees !== -1 ? Math.abs(parseNumber(row[columns.fees])) : 0;
 
     if (!instrument || !direction || !quantity || !price || isNaN(time.getTime())) continue;

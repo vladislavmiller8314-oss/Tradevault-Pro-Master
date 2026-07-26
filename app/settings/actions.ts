@@ -73,3 +73,28 @@ export async function saveMusicPreference(formData: FormData) {
   revalidatePath("/", "layout");
   redirect("/settings?musicSaved=1");
 }
+
+export async function saveLeaderboardPreference(formData: FormData) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const optIn = formData.get("leaderboardOptIn") === "on";
+  const displayName = ((formData.get("leaderboardDisplayName") as string) || "").trim().slice(0, 40) || null;
+
+  await supabase
+    .from("profiles")
+    .upsert(
+      { id: user.id, leaderboard_opt_in: optIn, leaderboard_display_name: displayName },
+      { onConflict: "id" }
+    );
+
+  revalidatePath("/leaderboard");
+  revalidatePath("/settings");
+  redirect("/settings?leaderboardSaved=1");
+}

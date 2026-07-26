@@ -52,16 +52,31 @@ export async function fetchTrades(
 
 // Kontostand je Konto = Startkapital + Summe aller P&L-Werte auf diesem
 // Konto (Tages-P&L eines Kontos = P&L der heute geschlossenen Trades).
+export interface AccountBalance {
+  id: string;
+  name: string;
+  type: Account["type"];
+  currency: string;
+  broker: string | null;
+  isArchived: boolean;
+  startingBalance: number;
+  balance: number; // Startkapital + Summe aller P&L
+  totalPnl: number;
+  dayPl: number;
+}
+
 export async function fetchAccountsWithBalances(
   supabase: SupabaseClient,
-  userId: string
-): Promise<(Account & { dayPl: number })[]> {
-  const { data: accounts } = await supabase
-    .from("accounts")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("is_archived", false)
-    .order("created_at", { ascending: true });
+  userId: string,
+  options: { includeArchived?: boolean } = {}
+): Promise<AccountBalance[]> {
+  let query = supabase.from("accounts").select("*").eq("user_id", userId);
+
+  if (!options.includeArchived) {
+    query = query.eq("is_archived", false);
+  }
+
+  const { data: accounts } = await query.order("created_at", { ascending: true });
 
   if (!accounts) return [];
 
@@ -81,7 +96,11 @@ export async function fetchAccountsWithBalances(
       name: a.name,
       type: a.type,
       currency: a.currency,
+      broker: a.broker ?? null,
+      isArchived: a.is_archived,
+      startingBalance: Number(a.starting_balance),
       balance: Number(a.starting_balance) + totalPnl,
+      totalPnl,
       dayPl,
     };
   });
@@ -143,6 +162,8 @@ export interface Profile {
   activeWidgets: string[];
   musicProvider: MusicProvider;
   musicUrl: string | null;
+  leaderboardOptIn: boolean;
+  leaderboardDisplayName: string | null;
 }
 
 // Liefert immer nutzbare Defaults, auch falls die Trigger-basierte
@@ -150,7 +171,7 @@ export interface Profile {
 export async function fetchProfile(supabase: SupabaseClient, userId: string): Promise<Profile> {
   const { data } = await supabase
     .from("profiles")
-    .select("active_widgets, music_provider, music_url")
+    .select("active_widgets, music_provider, music_url, leaderboard_opt_in, leaderboard_display_name")
     .eq("id", userId)
     .maybeSingle();
 
@@ -158,5 +179,7 @@ export async function fetchProfile(supabase: SupabaseClient, userId: string): Pr
     activeWidgets: data?.active_widgets ?? DEFAULT_ACTIVE_WIDGETS,
     musicProvider: (data?.music_provider as MusicProvider) ?? "none",
     musicUrl: data?.music_url ?? null,
+    leaderboardOptIn: data?.leaderboard_opt_in ?? false,
+    leaderboardDisplayName: data?.leaderboard_display_name ?? null,
   };
 }

@@ -201,6 +201,14 @@ vorliegt.
   mitsamt aller Trades erhalten. Kann jederzeit reaktiviert werden.
 - **Konto löschen:** endgültig, mit Warnung im Bestätigungsdialog — löscht
   wegen `on delete cascade` im Schema auch alle Trades auf diesem Konto.
+- **Guthabenübersicht je Konto:** `/accounts` zeigt jetzt für jedes Konto
+  das echte Live-Guthaben (Startkapital + Summe aller P&L, nicht mehr das
+  unveränderte Startkapital) sowie den Gesamt-P&L seit Start, plus eine
+  Summenkarte oben für alle aktiven Konten zusammen. Das
+  Dashboard-Widget "Kontenübersicht" zeigt zusätzlich den Tages-P&L je
+  Konto. `fetchAccountsWithBalances` in `lib/supabase/queries.ts` liefert
+  jetzt auch Broker, Startkapital, Gesamt-P&L und einen
+  `includeArchived`-Schalter für diese Zwecke.
 
 ## 8. Emotion vor dem Trade
 
@@ -215,7 +223,23 @@ Regeleinhaltung, Strategie, Verbesserungsnotiz). Neue Spalte
 ("Emotion vorher → nachher") und in der Replay-Timeline angezeigt, und
 lässt sich über „Bearbeiten" auch nachträglich ändern.
 
-## 9. Nächste Schritte (Priorität)
+## 9. Rangliste (opt-in, anonymisiert)
+
+`/leaderboard`, verlinkt in der Sidebar. Zeigt Winrate und Profit Factor
+aller Nutzer, die dem zugestimmt haben — nie einzelne Trades, nie echte
+Euro-/Dollar-Beträge, nur unter einem selbst gewählten Anzeigenamen.
+Opt-in + Anzeigename werden unter `/settings` verwaltet. Technisch läuft
+das über eine `SECURITY DEFINER`-Funktion `get_leaderboard()` in
+Postgres, die kontoübergreifend aggregieren darf, ohne die strikten
+RLS-Policies auf `trades`/`profiles` selbst aufzuweichen — nach außen
+kommen ausschließlich die aggregierten Kennzahlen an. Mindestens 3
+Trades nötig, um in der Liste zu erscheinen (sonst wenig aussagekräftig).
+Neue Spalten `leaderboard_opt_in`/`leaderboard_display_name` in
+`profiles` sowie die Funktion selbst — bei bestehenden Datenbanken über
+`supabase/migration_leaderboard.sql` nachziehen (auch enthalten in der
+gesammelten `migration_all.sql`).
+
+## 10. Nächste Schritte (Priorität)
 
 1. ~~Supabase-Projekt anlegen, `supabase/schema.sql` ausführen~~
 2. ~~Auth (E-Mail/Passwort) über Supabase Auth verdrahten~~ — erledigt

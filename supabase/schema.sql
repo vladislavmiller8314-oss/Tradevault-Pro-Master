@@ -17,6 +17,8 @@ create table profiles (
   ],
   music_provider text check (music_provider in ('spotify','apple_music','youtube_music','soundcloud','none')) default 'none',
   music_url text,                         -- eingebetteter Track/Playlist-Link des gewählten Anbieters
+  leaderboard_opt_in boolean not null default false,
+  leaderboard_display_name text,          -- öffentlicher Anzeigename, falls opt-in (nie die echte E-Mail)
   created_at timestamptz not null default now()
 );
 
@@ -161,3 +163,49 @@ create policy "trade-screenshots: eigener Ordner löschen" on storage.objects
     bucket_id = 'trade-screenshots'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+-- ---------------------------------------------------------------------
+-- Rangliste (opt-in, anonymisiert)
+-- ---------------------------------------------------------------------
+-- Zeigt NIE einzelne Trades oder echte Euro-/Dollar-Beträge — nur
+-- Winrate und Profit Factor je Nutzer, und auch nur für Nutzer, die
+-- aktiv per leaderboard_opt_in zugestimmt haben. Läuft als
+-- SECURITY DEFINER, damit die Funktion trades/profiles über alle Nutzer
+-- hinweg lesen darf, ohne die strikten RLS-Policies auf den Tabellen
+-- selbst aufzuweichen — nach außen kommen ausschließlich die
+-- aggregierten Werte unten an.
+create or replace function public.get_leaderboard()
+returns table (
+  display_name text,
+  trade_count bigint,
+  winrate numeric,
+  profit_factor numeric,
+  is_me boolean
+)
+security definer
+set search_path = public
+language sql
+as $$
+  select
+    coalesce(nullif(trim(p.leaderboard_display_name), ''), 'Trader') as display_name,
+    count(t.id) as trade_count,
+    round(100.0 * count(*) filter (where t.pnl > 0) / count(t.id), 1) as winrate,
+    case
+      when abs(coalesce(sum(t.pnl) filter (where t.pnl < 0), 0)) > 0
+        then round(
+          coalesce(sum(t.pnl) filter (where t.pnl > 0), 0)
+          / abs(sum(t.pnl) filter (where t.pnl < 0)),
+          2
+        )
+      else null
+    end as profit_factor,
+    (p.id = auth.uid()) as is_me
+  from public.profiles p
+  join public.trades t on t.user_id = p.id
+  where p.leaderboard_opt_in = true
+  group by p.id, p.leaderboard_display_name
+  having count(t.id) >= 3
+  order by profit_factor desc nulls last, winrate desc;
+$$;
+
+grant execute on function public.get_leaderboard() to authenticated;

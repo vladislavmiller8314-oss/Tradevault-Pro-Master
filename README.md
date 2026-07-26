@@ -123,6 +123,11 @@ Jeder Push auf den Hauptbranch deployt automatisch neu.
   in mehrere Trades aufgeteilt
 - Emotion vor dem Trade: eigener kurzer Schritt direkt nach dem Speichern,
   vor der bestehenden Reflexion — im Journal als „vorher → nachher" sichtbar
+- Guthabenübersicht je Konto auf `/accounts`: echtes Live-Guthaben und
+  Gesamt-P&L statt nur des unveränderten Startkapitals, plus Summenkarte
+  über alle aktiven Konten
+- Rangliste (`/leaderboard`, opt-in): Winrate & Profit Factor anonymisiert
+  mit anderen Nutzern vergleichen, nie echte Beträge oder einzelne Trades
 - Supabase-Schema (Accounts, Trades, Equity-Snapshots, Replay-Highlights,
   Storage-Bucket für Screenshots, Row Level Security)
 - Design-System nach Vorgabe (Farben, Inter/JetBrains Mono, Tailwind-Tokens)

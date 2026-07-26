@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { createClient } from "@/lib/supabase/server";
 import { fetchProfile } from "@/lib/supabase/queries";
+import { IMPORT_TIMEZONES } from "@/lib/timezone";
 import { importTradesCsv } from "./actions";
 
 const inputClass =
@@ -93,6 +94,25 @@ export default async function ImportTradesPage({
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className={labelClass} htmlFor="timeZone">
+                  Zeitzone der Uhrzeiten in der Datei
+                </label>
+                <select id="timeZone" name="timeZone" defaultValue="Europe/Berlin" className={inputClass}>
+                  {IMPORT_TIMEZONES.map((tz) => (
+                    <option key={tz.value} value={tz.value}>
+                      {tz.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-ink-faint mt-1">
+                  Wichtig für korrekte Zeiten: die Datei enthält Uhrzeiten
+                  ohne Zeitzonen-Angabe — hier festlegen, in welcher Zeitzone
+                  dein Handelsterminal die Uhrzeiten anzeigt (meist deine
+                  eigene lokale Zeit).
+                </p>
               </div>
 
               <div>

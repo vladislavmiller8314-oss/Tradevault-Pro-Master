@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { createClient } from "@/lib/supabase/server";
-import { fetchProfile } from "@/lib/supabase/queries";
+import { fetchAccountsWithBalances, fetchProfile } from "@/lib/supabase/queries";
 import { createAccount, archiveAccount, reactivateAccount, deleteAccount } from "./actions";
 
 export default async function AccountsPage({
@@ -19,17 +19,29 @@ export default async function AccountsPage({
     redirect("/login");
   }
 
-  const [{ data: accounts }, profile] = await Promise.all([
-    supabase.from("accounts").select("*").order("created_at", { ascending: true }),
+  const [accounts, profile] = await Promise.all([
+    fetchAccountsWithBalances(supabase, user.id, { includeArchived: true }),
     fetchProfile(supabase, user.id),
   ]);
 
-  const active = (accounts ?? []).filter((a) => !a.is_archived);
-  const inactive = (accounts ?? []).filter((a) => a.is_archived);
+  const active = accounts.filter((a) => !a.isArchived);
+  const inactive = accounts.filter((a) => a.isArchived);
+  const totalBalance = active.reduce((sum, a) => sum + a.balance, 0);
 
   return (
     <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
       <div className="p-6 space-y-6 max-w-2xl">
+        {active.length > 0 && (
+          <div className="rounded-panel bg-panel-raised border border-panel-line p-4">
+            <div className="text-xs uppercase tracking-wider text-ink-muted mb-1">
+              Gesamt-Guthaben (aktive Konten)
+            </div>
+            <div className="tabular text-2xl font-semibold text-ink">
+              {totalBalance.toLocaleString("de-DE", { style: "currency", currency: active[0].currency })}
+            </div>
+          </div>
+        )}
+
         <div>
           <div className="text-xs uppercase tracking-wider text-ink-muted mb-3">
             Aktive Konten
@@ -49,11 +61,17 @@ export default async function AccountsPage({
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <div className="tabular text-sm text-ink">
-                      {Number(a.starting_balance).toLocaleString("de-DE", {
-                        style: "currency",
-                        currency: a.currency,
-                      })}
+                    <div className="text-right">
+                      <div className="tabular text-sm font-semibold text-ink">
+                        {a.balance.toLocaleString("de-DE", { style: "currency", currency: a.currency })}
+                      </div>
+                      <div
+                        className={`tabular text-xs ${a.totalPnl >= 0 ? "text-gain" : "text-loss"}`}
+                      >
+                        {a.totalPnl >= 0 ? "+" : ""}
+                        {a.totalPnl.toLocaleString("de-DE", { style: "currency", currency: a.currency })}{" "}
+                        gesamt
+                      </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <ConfirmButton
@@ -103,11 +121,15 @@ export default async function AccountsPage({
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <div className="tabular text-sm text-ink-muted">
-                      {Number(a.starting_balance).toLocaleString("de-DE", {
-                        style: "currency",
-                        currency: a.currency,
-                      })}
+                    <div className="text-right">
+                      <div className="tabular text-sm text-ink-muted">
+                        {a.balance.toLocaleString("de-DE", { style: "currency", currency: a.currency })}
+                      </div>
+                      <div className={`tabular text-xs ${a.totalPnl >= 0 ? "text-gain" : "text-loss"}`}>
+                        {a.totalPnl >= 0 ? "+" : ""}
+                        {a.totalPnl.toLocaleString("de-DE", { style: "currency", currency: a.currency })}{" "}
+                        gesamt
+                      </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <ConfirmButton

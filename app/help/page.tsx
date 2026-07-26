@@ -30,7 +30,11 @@ const SECTIONS = [
   },
   {
     title: "Konten",
-    text: "Lege beliebig viele Konten an (Prop, Live, Demo, Evaluation) mit Startkapital, Währung und Broker. Jeder Trade muss einem Konto zugeordnet sein.",
+    text: "Lege beliebig viele Konten an (Prop, Live, Demo, Evaluation) mit Startkapital, Währung und Broker. Jeder Trade muss einem Konto zugeordnet sein. Zeigt außerdem eine Guthabenübersicht mit dem echten Live-Stand je Konto (Startkapital + P&L), nicht nur dem unveränderten Startwert.",
+  },
+  {
+    title: "Rangliste",
+    text: "Optional: vergleiche deine Winrate und deinen Profit Factor anonymisiert mit anderen Nutzern, unter einem selbst gewählten Anzeigenamen. Es werden nie einzelne Trades oder echte Beträge geteilt, und ohne Zustimmung unter Einstellungen erscheinst du gar nicht in der Liste.",
   },
   {
     title: "Einstellungen",

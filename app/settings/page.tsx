@@ -5,12 +5,12 @@ import { fetchProfile } from "@/lib/supabase/queries";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { WIDGET_CATALOG } from "@/lib/widgets";
 import { MUSIC_PROVIDERS, getMusicEmbedUrl } from "@/lib/music";
-import { saveWidgetPreferences, saveMusicPreference } from "./actions";
+import { saveWidgetPreferences, saveMusicPreference, saveLeaderboardPreference } from "./actions";
 
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: { musicError?: string; musicSaved?: string };
+  searchParams: { musicError?: string; musicSaved?: string; leaderboardSaved?: string };
 }) {
   const supabase = createClient();
   const {
@@ -167,6 +167,61 @@ export default async function SettingsPage({
               className="w-full rounded-panel bg-gain/10 border border-gain/30 px-4 py-2 text-sm font-medium text-gain hover:bg-gain/20 transition-colors"
             >
               Musik speichern
+            </button>
+          </form>
+        </div>
+
+        {/* Rangliste */}
+        <div className="rounded-panel bg-panel-raised border border-panel-line p-5">
+          <h2 className="text-sm font-semibold text-ink mb-1">Rangliste</h2>
+          <p className="text-xs text-ink-muted mb-4">
+            Optional: Vergleiche deine Winrate und deinen Profit Factor
+            anonymisiert mit anderen Nutzern. Es werden nie einzelne Trades
+            oder echte Euro-/Dollar-Beträge geteilt — nur die beiden
+            Kennzahlen unter einem selbst gewählten Anzeigenamen. Ohne
+            Zustimmung erscheinst du in der Rangliste gar nicht.
+          </p>
+
+          {searchParams.leaderboardSaved && (
+            <div className="mb-4 rounded-md border border-gain/30 bg-gain/10 px-3 py-2 text-sm text-gain">
+              Gespeichert.
+            </div>
+          )}
+
+          <form action={saveLeaderboardPreference} className="space-y-3">
+            <label className="flex items-center justify-between rounded-md px-3 py-2.5 bg-panel-inset border border-panel-line cursor-pointer">
+              <span className="text-sm text-ink">An der Rangliste teilnehmen</span>
+              <input
+                type="checkbox"
+                name="leaderboardOptIn"
+                defaultChecked={profile.leaderboardOptIn}
+                className="w-4 h-4 accent-[#00C853]"
+              />
+            </label>
+
+            <div>
+              <label className="block text-xs text-ink-muted mb-1" htmlFor="leaderboardDisplayName">
+                Anzeigename in der Rangliste
+              </label>
+              <input
+                id="leaderboardDisplayName"
+                name="leaderboardDisplayName"
+                maxLength={40}
+                placeholder="z. B. dein Trading-Alias"
+                defaultValue={profile.leaderboardDisplayName ?? ""}
+                className="w-full rounded-md bg-panel-inset border border-panel-line px-3 py-2 text-sm text-ink outline-none focus:border-gain/50"
+              />
+              <p className="text-xs text-ink-faint mt-1">
+                Bitte keinen echten Namen/keine E-Mail verwenden. Leer
+                gelassen erscheinst du als „Trader".
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full rounded-panel bg-gain/10 border border-gain/30 px-4 py-2 text-sm font-medium text-gain hover:bg-gain/20 transition-colors"
+            >
+              Rangliste-Einstellung speichern
             </button>
           </form>
         </div>
