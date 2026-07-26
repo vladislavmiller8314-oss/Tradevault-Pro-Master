@@ -112,6 +112,17 @@ Jeder Push auf den Hauptbranch deployt automatisch neu.
   eigene 404- und Fehlerseiten
 - Installierbar als App (PWA) auf Windows, Mac, Android und iPhone/iPad
   — eigenes Icon, kein Browser-Rahmen, Button dafür unter „Einstellungen"
+- Trades bearbeiten und löschen (im Journal, mit Bestätigungsdialog)
+- Konten archivieren ("zu Inaktiv verschieben", bleiben erhalten,
+  reaktivierbar) und endgültig löschen
+- CSV-Import (`/trades/import`): Handelshistorie aus deiner Plattform
+  hochladen statt einzeln einzutippen — erkennt Spalten automatisch,
+  fasst einzelne Fills per FIFO zu Trades zusammen
+- Teilgewinnmitnahme auch manuell: im Trade-Formular beliebig viele
+  Ausstiege zu einem Entry hinzufügen, wird beim Speichern automatisch
+  in mehrere Trades aufgeteilt
+- Emotion vor dem Trade: eigener kurzer Schritt direkt nach dem Speichern,
+  vor der bestehenden Reflexion — im Journal als „vorher → nachher" sichtbar
 - Supabase-Schema (Accounts, Trades, Equity-Snapshots, Replay-Highlights,
   Storage-Bucket für Screenshots, Row Level Security)
 - Design-System nach Vorgabe (Farben, Inter/JetBrains Mono, Tailwind-Tokens)

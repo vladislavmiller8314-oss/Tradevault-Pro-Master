@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
+import { ConfirmButton } from "@/components/ConfirmButton";
 import { createClient } from "@/lib/supabase/server";
 import { fetchProfile } from "@/lib/supabase/queries";
-import { createAccount } from "./actions";
+import { createAccount, archiveAccount, reactivateAccount, deleteAccount } from "./actions";
 
 export default async function AccountsPage({
   searchParams,
@@ -23,17 +24,20 @@ export default async function AccountsPage({
     fetchProfile(supabase, user.id),
   ]);
 
+  const active = (accounts ?? []).filter((a) => !a.is_archived);
+  const inactive = (accounts ?? []).filter((a) => a.is_archived);
+
   return (
     <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
       <div className="p-6 space-y-6 max-w-2xl">
         <div>
           <div className="text-xs uppercase tracking-wider text-ink-muted mb-3">
-            Deine Konten
+            Aktive Konten
           </div>
 
-          {accounts && accounts.length > 0 ? (
+          {active.length > 0 ? (
             <div className="space-y-2">
-              {accounts.map((a) => (
+              {active.map((a) => (
                 <div
                   key={a.id}
                   className="flex items-center justify-between rounded-panel bg-panel-raised border border-panel-line px-4 py-3"
@@ -44,11 +48,31 @@ export default async function AccountsPage({
                       {a.type} · {a.broker || "kein Broker hinterlegt"}
                     </div>
                   </div>
-                  <div className="tabular text-sm text-ink">
-                    {Number(a.starting_balance).toLocaleString("de-DE", {
-                      style: "currency",
-                      currency: a.currency,
-                    })}
+                  <div className="flex items-center gap-4">
+                    <div className="tabular text-sm text-ink">
+                      {Number(a.starting_balance).toLocaleString("de-DE", {
+                        style: "currency",
+                        currency: a.currency,
+                      })}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <ConfirmButton
+                        action={archiveAccount}
+                        hiddenFields={{ accountId: a.id }}
+                        confirmText={`"${a.name}" zu inaktiven Konten verschieben? Es taucht dann nicht mehr im Dashboard auf, bleibt aber erhalten.`}
+                        className="text-xs text-ink-faint hover:text-ink transition-colors"
+                      >
+                        Zu Inaktiv
+                      </ConfirmButton>
+                      <ConfirmButton
+                        action={deleteAccount}
+                        hiddenFields={{ accountId: a.id }}
+                        confirmText={`"${a.name}" endgültig löschen? Alle Trades auf diesem Konto werden dabei ebenfalls gelöscht. Das kann nicht rückgängig gemacht werden.`}
+                        className="text-xs text-ink-faint hover:text-loss transition-colors"
+                      >
+                        Löschen
+                      </ConfirmButton>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -60,6 +84,55 @@ export default async function AccountsPage({
             </div>
           )}
         </div>
+
+        {inactive.length > 0 && (
+          <div>
+            <div className="text-xs uppercase tracking-wider text-ink-muted mb-3">
+              Inaktive Konten
+            </div>
+            <div className="space-y-2">
+              {inactive.map((a) => (
+                <div
+                  key={a.id}
+                  className="flex items-center justify-between rounded-panel bg-panel-inset border border-panel-line px-4 py-3 opacity-70"
+                >
+                  <div>
+                    <div className="text-sm font-medium text-ink">{a.name}</div>
+                    <div className="text-xs text-ink-muted">
+                      {a.type} · {a.broker || "kein Broker hinterlegt"}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="tabular text-sm text-ink-muted">
+                      {Number(a.starting_balance).toLocaleString("de-DE", {
+                        style: "currency",
+                        currency: a.currency,
+                      })}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <ConfirmButton
+                        action={reactivateAccount}
+                        hiddenFields={{ accountId: a.id }}
+                        confirmText={`"${a.name}" wieder aktivieren?`}
+                        className="text-xs text-gain hover:underline"
+                      >
+                        Reaktivieren
+                      </ConfirmButton>
+                      <ConfirmButton
+                        action={deleteAccount}
+                        hiddenFields={{ accountId: a.id }}
+                        confirmText={`"${a.name}" endgültig löschen? Alle Trades auf diesem Konto werden dabei ebenfalls gelöscht. Das kann nicht rückgängig gemacht werden.`}
+                        className="text-xs text-ink-faint hover:text-loss transition-colors"
+                      >
+                        Löschen
+                      </ConfirmButton>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="rounded-panel bg-panel-raised border border-panel-line p-5">
           <h2 className="text-sm font-semibold text-ink mb-4">Konto hinzufügen</h2>

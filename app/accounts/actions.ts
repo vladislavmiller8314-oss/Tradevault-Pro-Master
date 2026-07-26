@@ -37,3 +37,70 @@ export async function createAccount(formData: FormData) {
   revalidatePath("/trades/new");
   redirect("/accounts");
 }
+
+export async function archiveAccount(formData: FormData) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const accountId = formData.get("accountId") as string;
+
+  await supabase
+    .from("accounts")
+    .update({ is_archived: true })
+    .eq("id", accountId)
+    .eq("user_id", user.id);
+
+  revalidatePath("/accounts");
+  revalidatePath("/");
+  revalidatePath("/trades/new");
+}
+
+export async function reactivateAccount(formData: FormData) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const accountId = formData.get("accountId") as string;
+
+  await supabase
+    .from("accounts")
+    .update({ is_archived: false })
+    .eq("id", accountId)
+    .eq("user_id", user.id);
+
+  revalidatePath("/accounts");
+  revalidatePath("/");
+  revalidatePath("/trades/new");
+}
+
+export async function deleteAccount(formData: FormData) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const accountId = formData.get("accountId") as string;
+
+  // Löscht auch alle Trades auf diesem Konto (on delete cascade im Schema).
+  await supabase.from("accounts").delete().eq("id", accountId).eq("user_id", user.id);
+
+  revalidatePath("/accounts");
+  revalidatePath("/");
+  revalidatePath("/journal");
+  revalidatePath("/trades/new");
+}

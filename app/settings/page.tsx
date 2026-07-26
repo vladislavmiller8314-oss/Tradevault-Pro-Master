@@ -7,7 +7,11 @@ import { WIDGET_CATALOG } from "@/lib/widgets";
 import { MUSIC_PROVIDERS, getMusicEmbedUrl } from "@/lib/music";
 import { saveWidgetPreferences, saveMusicPreference } from "./actions";
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: { musicError?: string; musicSaved?: string };
+}) {
   const supabase = createClient();
   const {
     data: { user },
@@ -79,6 +83,17 @@ export default async function SettingsPage() {
             eingebettet, kein Konto wird verknüpft oder benötigt.
           </p>
 
+          {searchParams.musicError && (
+            <div className="mb-4 rounded-md border border-loss/30 bg-loss/10 px-3 py-2 text-sm text-loss">
+              {searchParams.musicError}
+            </div>
+          )}
+          {searchParams.musicSaved && !searchParams.musicError && (
+            <div className="mb-4 rounded-md border border-gain/30 bg-gain/10 px-3 py-2 text-sm text-gain">
+              Gespeichert.
+            </div>
+          )}
+
           <form action={saveMusicPreference} className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <label
@@ -129,6 +144,11 @@ export default async function SettingsPage() {
                 placeholder="https://open.spotify.com/playlist/..."
                 className="w-full rounded-md bg-panel-inset border border-panel-line px-3 py-2 text-sm text-ink outline-none focus:border-gain/50"
               />
+              {profile.musicProvider !== "none" && (
+                <p className="text-xs text-ink-faint mt-1">
+                  {MUSIC_PROVIDERS.find((p) => p.value === profile.musicProvider)?.hint}
+                </p>
+              )}
             </div>
 
             {previewUrl && (

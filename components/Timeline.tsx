@@ -42,7 +42,8 @@ export function Timeline({ trades }: { trades: Trade[] }) {
                   minute: "2-digit",
                 })}
                 {t.setup ? ` · ${t.setup}` : ""}
-                {t.emotion ? ` · ${t.emotion}` : ""}
+                {t.preTradeEmotion ? ` · vorher: ${t.preTradeEmotion}` : ""}
+                {t.emotion ? ` · nachher: ${t.emotion}` : ""}
               </div>
 
               {t.screenshotUrl && (

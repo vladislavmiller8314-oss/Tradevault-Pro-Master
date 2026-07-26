@@ -22,6 +22,7 @@ function mapTrade(row: any): Trade {
     emotion: row.emotion ?? "",
     ruleAdherence: row.rule_adherence ?? undefined,
     improvementNote: row.improvement_note ?? undefined,
+    preTradeEmotion: row.pre_trade_emotion ?? undefined,
     screenshotUrl: row.screenshot_url ?? undefined,
     notes: row.notes ?? undefined,
     openedAt: row.opened_at,

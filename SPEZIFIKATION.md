@@ -137,7 +137,85 @@ Microsoft Store, falls das für dich wichtig ist.
 Für den täglichen Gebrauch ("App-Gefühl" auf allen Geräten, ohne
 Store-Umweg) deckt die PWA das Ziel aus deiner Anfrage ab.
 
-## 6. Nächste Schritte (Priorität)
+## 6. Broker-Anbindung / CSV-Import
+
+Ursprünglicher Wunsch: Broker direkt verbinden, damit Trades automatisch
+erfasst werden und nur noch die 15-Sekunden-Reflexion übrig bleibt.
+
+**Recherche-Ergebnis:** Es gibt keine "eine API für alle Broker" — jede
+Plattform ist anders, und der Zugang liegt jeweils beim Broker, nicht bei
+uns. Tradovate z. B. gibt Einzeltradern einen selbst erzeugbaren API-Key
+(Live-Konto, >1.000 $ Guthaben). The Trading Pit / Volume Trader Terminal
+läuft dagegen über **Rithmic** — dafür braucht es eine Zulassung als
+"Rithmic Certified Developer" bei Rithmic selbst, kein Software-Problem,
+sondern ein externer Freigabeprozess.
+
+**Manuelle Erfassung, jetzt auch mit Teilgewinnmitnahme:** Das
+Trade-Formular (`/trades/new`) hat jetzt einen Entry-Bereich (Konto,
+Instrument, Richtung, Entry-Preis, Einstiegszeit) und einen separaten
+Ausstiegs-Bereich (`components/ExitLegsInput.tsx`), in dem sich beliebig
+viele Ausstiege hinzufügen lassen — je mit eigener Kontraktzahl, Exit-Preis
+und Ausstiegszeit. Beim Speichern legt `createTrade` automatisch einen
+Trade-Datensatz **pro Ausstieg** an (gleicher Entry, unterschiedlicher
+Exit), Gebühren werden proportional zur Kontraktzahl aufgeteilt — nach
+demselben Prinzip wie beim CSV-Import (siehe unten). Bei nur einem
+Ausstieg (Standardfall) ändert sich für den Nutzer nichts.
+
+**CSV-Import** (`/trades/import`, verlinkt von Journal und Trade-Formular
+aus):
+
+- `lib/csv.ts` — eigener CSV-Parser (Komma/Semikolon-Erkennung,
+  Anführungszeichen, Escapes), keine externe Abhängigkeit
+- `lib/tradeImport.ts` — erkennt Spalten automatisch über Alias-Listen
+  (z. B. "Symbol"/"Instrument"/"Product"), unterstützt zwei Modi:
+  - **Fertige Trades:** eine Zeile pro Trade mit Entry+Exit-Preis
+  - **Einzelne Fills:** eine Zeile pro Kauf/Verkauf — wird per FIFO-Matching
+    zu Round-Turn-Trades zusammengeführt, inkl. korrekter Gebühren-Aufteilung
+    bei Teilausführungen und Positions-Reversals (mit Testfällen geprüft,
+    siehe unten)
+- Importierte Trades bekommen das Setup „CSV-Import" und landen direkt im
+  Journal (keine einzelne Reflexion pro Trade bei Bulk-Import — das wäre
+  bei z. B. 50 Trades auf einmal nicht mehr "15 Sekunden"). Emotion/
+  Regeleinhaltung lassen sich über „Bearbeiten" nachtragen.
+
+**Getestet (lokal, mit Beispieldaten):** CSV-Parsing inkl. Sonderzeichen,
+Spalten-Erkennung, FIFO-Matching inkl. Reversal-Szenario — Gebühren-Summe
+vor/nach Verteilung stimmte exakt überein. **Nicht getestet:** ein echter
+Export aus Volume Trader Terminal, da mir kein Beispiel vorliegt — die
+Spalten-Alias-Liste in `lib/tradeImport.ts` lässt sich bei Bedarf leicht
+um die tatsächlichen VTT-Spaltennamen ergänzen, sobald ein echter Export
+vorliegt.
+
+## 7. Trades bearbeiten/löschen, Konten löschen/archivieren
+
+- **Trade bearbeiten:** `/trades/[id]/edit` — vorbelegtes Formular,
+  identisch zum Erfassen-Formular. Achtung: der Punktwert wird nicht in
+  der Datenbank gespeichert (nur zur P&L-Berechnung genutzt), beim
+  Bearbeiten steht er deshalb wieder auf 1 und sollte bei Bedarf erneut
+  eingetragen werden, sonst wird die P&L mit Punktwert 1 neu berechnet.
+- **Trade löschen:** Button im Journal, mit Bestätigungsdialog
+  (`components/ConfirmButton.tsx`).
+- **Konto archivieren:** verschiebt es in den Bereich „Inaktive Konten"
+  auf `/accounts` (setzt `is_archived = true`). Taucht danach nicht mehr
+  im Dashboard, im Konto-Filter oder im Trade-Formular auf, bleibt aber
+  mitsamt aller Trades erhalten. Kann jederzeit reaktiviert werden.
+- **Konto löschen:** endgültig, mit Warnung im Bestätigungsdialog — löscht
+  wegen `on delete cascade` im Schema auch alle Trades auf diesem Konto.
+
+## 8. Emotion vor dem Trade
+
+Direkt nach dem Speichern eines Trades kommt jetzt zuerst
+`/trades/[id]/feeling` — „Wie hast du dich vor dem Trade gefühlt?" mit
+eigener Emoji-Reihe (Ruhig/Zuversichtlich/Nervös/Müde/Gestresst/
+Ungeduldig/Neutral), überspringbar. Danach geht's wie bisher weiter zur
+bestehenden Reflexion (`/trades/[id]/reflect`: Emotion danach,
+Regeleinhaltung, Strategie, Verbesserungsnotiz). Neue Spalte
+`pre_trade_emotion` in `trades` — bei bestehenden Datenbanken über
+`supabase/migration_pre_emotion.sql` nachziehen. Wird im Journal
+("Emotion vorher → nachher") und in der Replay-Timeline angezeigt, und
+lässt sich über „Bearbeiten" auch nachträglich ändern.
+
+## 9. Nächste Schritte (Priorität)
 
 1. ~~Supabase-Projekt anlegen, `supabase/schema.sql` ausführen~~
 2. ~~Auth (E-Mail/Passwort) über Supabase Auth verdrahten~~ — erledigt

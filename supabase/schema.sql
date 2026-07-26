@@ -73,6 +73,7 @@ create table trades (
   emotion text,                           -- z.B. "Diszipliniert", "FOMO", "Rache"
   rule_adherence text check (rule_adherence in ('eingehalten','teilweise','gebrochen')),
   improvement_note text,                  -- kurze Notiz: "nächstes Mal besser machen"
+  pre_trade_emotion text,                 -- Emotion VOR dem Trade (z.B. "Ruhig", "Nervös")
   screenshot_url text,
   notes text,
   opened_at timestamptz not null,

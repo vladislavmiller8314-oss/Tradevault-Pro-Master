@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
+import { ExitLegsInput } from "@/components/ExitLegsInput";
 import { createClient } from "@/lib/supabase/server";
 import { fetchProfile } from "@/lib/supabase/queries";
 import { createTrade } from "./actions";
@@ -35,8 +36,13 @@ export default async function NewTradePage({
   return (
     <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
       <div className="p-6 max-w-2xl">
-        <div className="text-xs uppercase tracking-wider text-ink-muted mb-4">
-          Neuer Trade
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-xs uppercase tracking-wider text-ink-muted">
+            Neuer Trade
+          </div>
+          <Link href="/trades/import" className="text-xs text-ink-muted hover:text-ink">
+            Stattdessen CSV importieren →
+          </Link>
         </div>
 
         {!accounts || accounts.length === 0 ? (
@@ -98,46 +104,18 @@ export default async function NewTradePage({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className={labelClass} htmlFor="contracts">
-                    Kontrakte
-                  </label>
-                  <input
-                    id="contracts"
-                    name="contracts"
-                    type="number"
-                    step="0.01"
-                    required
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass} htmlFor="entryPrice">
-                    Entry
-                  </label>
-                  <input
-                    id="entryPrice"
-                    name="entryPrice"
-                    type="number"
-                    step="0.00001"
-                    required
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass} htmlFor="exitPrice">
-                    Exit
-                  </label>
-                  <input
-                    id="exitPrice"
-                    name="exitPrice"
-                    type="number"
-                    step="0.00001"
-                    required
-                    className={inputClass}
-                  />
-                </div>
+              <div>
+                <label className={labelClass} htmlFor="entryPrice">
+                  Entry-Preis
+                </label>
+                <input
+                  id="entryPrice"
+                  name="entryPrice"
+                  type="number"
+                  step="0.00001"
+                  required
+                  className={inputClass}
+                />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
@@ -167,7 +145,7 @@ export default async function NewTradePage({
                 </div>
                 <div>
                   <label className={labelClass} htmlFor="fees">
-                    Gebühren
+                    Gebühren gesamt
                   </label>
                   <input
                     id="fees"
@@ -199,32 +177,20 @@ export default async function NewTradePage({
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={labelClass} htmlFor="openedAt">
-                    Einstiegszeit
-                  </label>
-                  <input
-                    id="openedAt"
-                    name="openedAt"
-                    type="datetime-local"
-                    required
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass} htmlFor="closedAt">
-                    Ausstiegszeit
-                  </label>
-                  <input
-                    id="closedAt"
-                    name="closedAt"
-                    type="datetime-local"
-                    required
-                    className={inputClass}
-                  />
-                </div>
+              <div>
+                <label className={labelClass} htmlFor="openedAt">
+                  Einstiegszeit
+                </label>
+                <input
+                  id="openedAt"
+                  name="openedAt"
+                  type="datetime-local"
+                  required
+                  className={inputClass}
+                />
               </div>
+
+              <ExitLegsInput />
 
               <div>
                 <label className={labelClass} htmlFor="setup">

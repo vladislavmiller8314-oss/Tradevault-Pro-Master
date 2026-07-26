@@ -26,6 +26,7 @@ export interface Trade {
   emotion: string;
   ruleAdherence?: "eingehalten" | "teilweise" | "gebrochen";
   improvementNote?: string;
+  preTradeEmotion?: string;
   screenshotUrl?: string;
   notes?: string;
   openedAt: string;
