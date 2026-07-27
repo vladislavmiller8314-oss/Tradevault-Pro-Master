@@ -54,6 +54,11 @@ einer echten Domain ohne HTTPS würde er nicht erscheinen.
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `NEXT_PUBLIC_SITE_URL` → hier die spätere Vercel-URL eintragen,
      z. B. `https://tradevault-pro.vercel.app` (oder deine eigene Domain)
+   - Optional, nur für die zusätzliche Claude-Analyse im Coach:
+     `ANTHROPIC_API_KEY` (eigener Key von console.anthropic.com, **ohne**
+     `NEXT_PUBLIC_`-Präfix — verursacht Kosten auf deinem Anthropic-Konto).
+     Ohne diese Variable funktioniert die kostenlose regelbasierte
+     Coach-Analyse trotzdem ganz normal.
 4. **Deploy** klicken
 5. Nach dem ersten Deploy: in Supabase unter **Authentication → URL
    Configuration** die Vercel-URL sowohl als **Site URL** als auch mit
@@ -128,6 +133,12 @@ Jeder Push auf den Hauptbranch deployt automatisch neu.
   über alle aktiven Konten
 - Rangliste (`/leaderboard`, opt-in): Winrate & Profit Factor anonymisiert
   mit anderen Nutzern vergleichen, nie echte Beträge oder einzelne Trades
+- Mehrfachauswahl im Journal: einzelne Trades per Checkbox auswählen
+  (oder alle auf einmal) und gesammelt löschen, mit Bestätigungsdialog
+- Coach (`/coach`): kostenlose, regelbasierte Musteranalyse deiner
+  Statistiken ohne API-Key oder Kosten — plus optional eine
+  Claude-Analyse für nuanciertere Hinweise (eigener `ANTHROPIC_API_KEY`
+  nötig, verursacht dann Kosten auf deinem Anthropic-Konto)
 - Supabase-Schema (Accounts, Trades, Equity-Snapshots, Replay-Highlights,
   Storage-Bucket für Screenshots, Row Level Security)
 - Design-System nach Vorgabe (Farben, Inter/JetBrains Mono, Tailwind-Tokens)

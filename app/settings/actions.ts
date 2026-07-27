@@ -32,13 +32,17 @@ export async function saveWidgetPreferences(formData: FormData) {
     (w) => w.key
   );
 
-  await supabase
+  const { error } = await supabase
     .from("profiles")
     .upsert({ id: user.id, active_widgets: activeWidgets }, { onConflict: "id" });
 
+  if (error) {
+    redirect(`/settings?widgetError=${encodeURIComponent(error.message)}`);
+  }
+
   revalidatePath("/");
   revalidatePath("/settings");
-  redirect("/settings");
+  redirect("/settings?widgetSaved=1");
 }
 
 export async function saveMusicPreference(formData: FormData) {
@@ -66,9 +70,13 @@ export async function saveMusicPreference(formData: FormData) {
     }
   }
 
-  await supabase
+  const { error } = await supabase
     .from("profiles")
     .upsert({ id: user.id, music_provider: musicProvider, music_url: musicUrl }, { onConflict: "id" });
+
+  if (error) {
+    redirect(`/settings?musicError=${encodeURIComponent(error.message)}`);
+  }
 
   revalidatePath("/", "layout");
   redirect("/settings?musicSaved=1");
@@ -87,12 +95,16 @@ export async function saveLeaderboardPreference(formData: FormData) {
   const optIn = formData.get("leaderboardOptIn") === "on";
   const displayName = ((formData.get("leaderboardDisplayName") as string) || "").trim().slice(0, 40) || null;
 
-  await supabase
+  const { error } = await supabase
     .from("profiles")
     .upsert(
       { id: user.id, leaderboard_opt_in: optIn, leaderboard_display_name: displayName },
       { onConflict: "id" }
     );
+
+  if (error) {
+    redirect(`/settings?leaderboardError=${encodeURIComponent(error.message)}`);
+  }
 
   revalidatePath("/leaderboard");
   revalidatePath("/settings");

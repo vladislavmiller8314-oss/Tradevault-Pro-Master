@@ -239,7 +239,61 @@ Neue Spalten `leaderboard_opt_in`/`leaderboard_display_name` in
 `supabase/migration_leaderboard.sql` nachziehen (auch enthalten in der
 gesammelten `migration_all.sql`).
 
-## 10. Nächste Schritte (Priorität)
+## 10. Mehrfachauswahl & Sammel-Löschen im Journal
+
+`components/JournalTable.tsx` (Client Component) ersetzt die bisherige
+reine Server-Tabelle: Checkbox je Zeile, Checkbox „Alle auswählen" im
+Tabellenkopf (inkl. Indeterminate-Zustand bei Teilauswahl), und eine
+Aktionsleiste, die erscheint, sobald mindestens ein Trade ausgewählt ist
+— mit Bestätigungsdialog vor dem endgültigen Löschen. Neue Server Action
+`bulkDeleteTrades` in `app/trades/[id]/edit/actions.ts` löscht alle
+ausgewählten IDs in einem Rutsch. Einzel-Bearbeiten/-Löschen pro Zeile
+bleibt wie gehabt zusätzlich bestehen.
+
+## 11. Coach (kostenlos + optional KI-gestützt)
+
+`/coach` — zeigt Stärken/Schwächen/Tipps als Karten, basierend auf
+deinen aggregierten Statistiken. Zwei Varianten, beide auf derselben
+Seite:
+
+**1. Kostenlose Analyse (Standard, immer verfügbar)**
+Regelbasierte Muster-Erkennung in `lib/coach.ts:generateHeuristicInsights`
+— läuft komplett auf dem eigenen Server, kein API-Key, keine Kosten,
+kein Drittanbieter. Vergleicht Profit Factor, besten/schlechtesten
+Wochentag, bestes/schlechtestes Zeitfenster, Wirkung von
+Regeleinhaltung, Wirkung der Emotion vor dem Trade, und Long- vs.
+Short-Performance — mit Mindestgrößen je Gruppe (3 Trades), damit keine
+Zufallsmuster als Erkenntnis verkauft werden. Mit synthetischen
+Testdaten durchgetestet: erkennt eingebaute Muster zuverlässig und
+konkret (z. B. „Long-Trades laufen deutlich besser als Short-Trades,
+50% vs. 33% Winrate").
+
+**2. Claude-Analyse (optional, zusätzlicher Button)**
+Echter Aufruf der Anthropic API für nuanciertere, freier formulierte
+Hinweise. **Wichtig, unbedingt lesen, bevor du das einrichtest:**
+
+- Du brauchst einen **eigenen Anthropic-API-Key** von
+  [console.anthropic.com](https://console.anthropic.com) — trag ihn als
+  `ANTHROPIC_API_KEY` in Vercel unter Environment Variables ein (**ohne**
+  `NEXT_PUBLIC_`-Präfix, damit er niemals im Browser landet)
+- Jeder Klick ist ein echter API-Aufruf und **kostet Geld auf deinem
+  Anthropic-Konto** — bei den hier verwendeten Textmengen im Bereich von
+  Cent-Bruchteilen pro Analyse, aber nicht kostenlos
+- Alternative, falls das Anthropic-Konto vermieden werden soll: Google
+  Gemini bietet über Google AI Studio einen dauerhaft kostenlosen
+  API-Tier ohne Kreditkarte (Stand: Recherche Juli 2026, Kontingente
+  ändern sich erfahrungsgemäß). Dafür müsste `lib/coach.ts:callClaudeForCoachInsights`
+  auf den Gemini-Endpunkt umgebaut werden — bisher nicht umgesetzt, da
+  die kostenlose regelbasierte Variante für die meisten Fälle ausreicht
+- Modell: `claude-sonnet-5`
+
+Beide Varianten teilen sich dieselbe Anzeige und Speicherung — neue
+Spalte `source` (`free`/`ai`) in `coach_insights` zeigt an, welche
+Variante gerade angezeigt wird. Mindestens 5 Trades nötig für beide
+Varianten. Neue Tabelle `coach_insights` — bei bestehenden Datenbanken
+über `supabase/migration_coach.sql` nachziehen.
+
+## 12. Nächste Schritte (Priorität)
 
 1. ~~Supabase-Projekt anlegen, `supabase/schema.sql` ausführen~~
 2. ~~Auth (E-Mail/Passwort) über Supabase Auth verdrahten~~ — erledigt

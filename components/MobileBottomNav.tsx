@@ -8,7 +8,7 @@ import { NAV } from "@/lib/nav";
 import { signOut } from "@/app/login/actions";
 
 const PRIMARY = NAV.slice(0, 4); // Dashboard, Journal, Replay, Statistiken
-const MORE = NAV.slice(4); // Konten, Einstellungen (+ Handbuch, Abmelden)
+const MORE = NAV.slice(4); // KI Coach, Konten, Rangliste, Einstellungen (+ Handbuch, Abmelden)
 
 export function MobileBottomNav() {
   const pathname = usePathname();

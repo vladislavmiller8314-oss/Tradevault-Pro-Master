@@ -111,3 +111,32 @@ export async function deleteTrade(formData: FormData) {
   revalidatePath("/stats");
   revalidatePath("/replay");
 }
+
+export async function bulkDeleteTrades(formData: FormData) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const idsRaw = (formData.get("tradeIds") as string) || "";
+  const ids = idsRaw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (ids.length === 0) {
+    redirect("/journal");
+  }
+
+  await supabase.from("trades").delete().in("id", ids).eq("user_id", user.id);
+
+  revalidatePath("/");
+  revalidatePath("/journal");
+  revalidatePath("/stats");
+  revalidatePath("/replay");
+  redirect(`/journal?bulkDeleted=${ids.length}`);
+}

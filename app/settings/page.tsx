@@ -10,7 +10,14 @@ import { saveWidgetPreferences, saveMusicPreference, saveLeaderboardPreference }
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: { musicError?: string; musicSaved?: string; leaderboardSaved?: string };
+  searchParams: {
+    musicError?: string;
+    musicSaved?: string;
+    leaderboardSaved?: string;
+    leaderboardError?: string;
+    widgetSaved?: string;
+    widgetError?: string;
+  };
 }) {
   const supabase = createClient();
   const {
@@ -65,6 +72,11 @@ export default async function SettingsPage({
                 />
               </label>
             ))}
+            {searchParams.widgetError && (
+              <div className="rounded-md border border-loss/30 bg-loss/10 px-3 py-2 text-sm text-loss">
+                {searchParams.widgetError}
+              </div>
+            )}
             <button
               type="submit"
               className="w-full rounded-panel bg-gain/10 border border-gain/30 px-4 py-2 text-sm font-medium text-gain hover:bg-gain/20 transition-colors mt-2"
@@ -96,39 +108,30 @@ export default async function SettingsPage({
 
           <form action={saveMusicPreference} className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
-              <label
-                className={`flex items-center justify-center gap-2 rounded-md px-3 py-2.5 text-sm cursor-pointer border ${
-                  profile.musicProvider === "none"
-                    ? "border-gain/50 bg-gain/10 text-gain"
-                    : "border-panel-line bg-panel-inset text-ink-muted"
-                }`}
-              >
+              <label className="cursor-pointer">
                 <input
                   type="radio"
                   name="musicProvider"
                   value="none"
                   defaultChecked={profile.musicProvider === "none"}
-                  className="sr-only"
+                  className="peer sr-only"
                 />
-                Keine
+                <span className="flex items-center justify-center gap-2 rounded-md px-3 py-2.5 text-sm border border-panel-line bg-panel-inset text-ink-muted peer-checked:border-gain/50 peer-checked:bg-gain/10 peer-checked:text-gain transition-colors">
+                  Keine
+                </span>
               </label>
               {MUSIC_PROVIDERS.map((p) => (
-                <label
-                  key={p.value}
-                  className={`flex items-center justify-center gap-2 rounded-md px-3 py-2.5 text-sm cursor-pointer border ${
-                    profile.musicProvider === p.value
-                      ? "border-gain/50 bg-gain/10 text-gain"
-                      : "border-panel-line bg-panel-inset text-ink-muted"
-                  }`}
-                >
+                <label key={p.value} className="cursor-pointer">
                   <input
                     type="radio"
                     name="musicProvider"
                     value={p.value}
                     defaultChecked={profile.musicProvider === p.value}
-                    className="sr-only"
+                    className="peer sr-only"
                   />
-                  {p.label}
+                  <span className="flex items-center justify-center gap-2 rounded-md px-3 py-2.5 text-sm border border-panel-line bg-panel-inset text-ink-muted peer-checked:border-gain/50 peer-checked:bg-gain/10 peer-checked:text-gain transition-colors">
+                    {p.label}
+                  </span>
                 </label>
               ))}
             </div>
@@ -182,7 +185,12 @@ export default async function SettingsPage({
             Zustimmung erscheinst du in der Rangliste gar nicht.
           </p>
 
-          {searchParams.leaderboardSaved && (
+          {searchParams.leaderboardError && (
+            <div className="mb-4 rounded-md border border-loss/30 bg-loss/10 px-3 py-2 text-sm text-loss">
+              {searchParams.leaderboardError}
+            </div>
+          )}
+          {searchParams.leaderboardSaved && !searchParams.leaderboardError && (
             <div className="mb-4 rounded-md border border-gain/30 bg-gain/10 px-3 py-2 text-sm text-gain">
               Gespeichert.
             </div>

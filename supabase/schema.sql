@@ -116,6 +116,21 @@ create table trade_highlights (
 );
 
 -- ---------------------------------------------------------------------
+-- KI-Coach: gespeicherte Analysen (damit nicht bei jedem Seitenaufruf neu
+-- generiert werden muss — kostet sonst unnötig API-Aufrufe)
+-- ---------------------------------------------------------------------
+create table coach_insights (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  content jsonb not null,          -- [{type: 'staerke'|'schwaeche'|'tipp', text: '...'}]
+  trade_count int not null,        -- wie viele Trades zum Zeitpunkt der Analyse einflossen
+  source text not null default 'free' check (source in ('free','ai')),
+  created_at timestamptz not null default now()
+);
+
+create index coach_insights_user_idx on coach_insights (user_id, created_at desc);
+
+-- ---------------------------------------------------------------------
 -- Row Level Security
 -- ---------------------------------------------------------------------
 alter table profiles enable row level security;
@@ -137,6 +152,9 @@ create policy "equity_snapshots: eigene Snapshots" on equity_snapshots
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create policy "trade_highlights: eigene Highlights" on trade_highlights
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "coach_insights: eigene Analysen" on coach_insights
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------

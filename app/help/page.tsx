@@ -33,6 +33,10 @@ const SECTIONS = [
     text: "Lege beliebig viele Konten an (Prop, Live, Demo, Evaluation) mit Startkapital, Währung und Broker. Jeder Trade muss einem Konto zugeordnet sein. Zeigt außerdem eine Guthabenübersicht mit dem echten Live-Stand je Konto (Startkapital + P&L), nicht nur dem unveränderten Startwert.",
   },
   {
+    title: "Coach",
+    text: "Zeigt Stärken, Schwächen und konkrete Tipps zu deinem Trading, basierend auf deinen aggregierten Statistiken (nie einzelne Trades oder Kontostände). Die kostenlose Analyse läuft ohne API-Key oder Kosten direkt hier. Optional gibt es zusätzlich eine Claude-Analyse für nuanciertere Formulierungen — braucht einen eigenen Anthropic-API-Key (siehe README) und verursacht dann Kosten. Braucht mindestens 5 Trades.",
+  },
+  {
     title: "Rangliste",
     text: "Optional: vergleiche deine Winrate und deinen Profit Factor anonymisiert mit anderen Nutzern, unter einem selbst gewählten Anzeigenamen. Es werden nie einzelne Trades oder echte Beträge geteilt, und ohne Zustimmung unter Einstellungen erscheinst du gar nicht in der Liste.",
   },
