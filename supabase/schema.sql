@@ -19,6 +19,7 @@ create table profiles (
   music_url text,                         -- eingebetteter Track/Playlist-Link des gewählten Anbieters
   leaderboard_opt_in boolean not null default false,
   leaderboard_display_name text,          -- öffentlicher Anzeigename, falls opt-in (nie die echte E-Mail)
+  trading_rules text[] not null default array[]::text[],  -- persönliches Regelwerk, frei editierbar
   created_at timestamptz not null default now()
 );
 

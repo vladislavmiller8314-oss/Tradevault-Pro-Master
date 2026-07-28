@@ -139,6 +139,12 @@ Jeder Push auf den Hauptbranch deployt automatisch neu.
   Statistiken ohne API-Key oder Kosten — plus optional eine
   Claude-Analyse für nuanciertere Hinweise (eigener `ANTHROPIC_API_KEY`
   nötig, verursacht dann Kosten auf deinem Anthropic-Konto)
+- Emotion vorher/nachher und Regeleinhaltung jetzt auch nachträglich im
+  Bearbeiten-Formular änderbar (per Emoji-Auswahl, 13 Emotionen zur Wahl)
+- Widget „Mein Regelwerk": persönliche Trading-Regeln unter
+  Einstellungen eintragen, erscheinen als Checkliste auf dem Dashboard
+- "Trades heute"/Winrate/Profit-Factor-Bug auf dem Dashboard behoben
+  (wurden bisher fälschlich nur aus den letzten 5 Trades berechnet)
 - Supabase-Schema (Accounts, Trades, Equity-Snapshots, Replay-Highlights,
   Storage-Bucket für Screenshots, Row Level Security)
 - Design-System nach Vorgabe (Farben, Inter/JetBrains Mono, Tailwind-Tokens)

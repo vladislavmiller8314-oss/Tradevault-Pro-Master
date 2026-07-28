@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { createClient } from "@/lib/supabase/server";
 import { fetchProfile } from "@/lib/supabase/queries";
+import { EMOTIONS, RULE_OPTIONS } from "@/lib/tradeTags";
 import { updateTrade } from "./actions";
 
 const inputClass =
@@ -266,14 +267,78 @@ export default async function EditTradePage({
             </div>
 
             <div>
-              <label className={labelClass} htmlFor="preTradeEmotion">
-                Emotion vor dem Trade
+              <label className={labelClass}>Emotion vor dem Trade</label>
+              <div className="flex flex-wrap gap-2">
+                {EMOTIONS.map((e) => (
+                  <label key={e.value} className="cursor-pointer">
+                    <input
+                      type="radio"
+                      name="preTradeEmotion"
+                      value={e.value}
+                      defaultChecked={trade.pre_trade_emotion === e.value}
+                      className="peer sr-only"
+                    />
+                    <span className="flex flex-col items-center gap-1 rounded-lg border border-panel-line bg-panel-inset px-2.5 py-2 text-[11px] text-ink-muted peer-checked:border-gain/50 peer-checked:bg-gain/10 peer-checked:text-gain transition-colors">
+                      <span className="text-base leading-none">{e.emoji}</span>
+                      {e.value}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className={labelClass}>Emotion nach dem Trade</label>
+              <div className="flex flex-wrap gap-2">
+                {EMOTIONS.map((e) => (
+                  <label key={e.value} className="cursor-pointer">
+                    <input
+                      type="radio"
+                      name="emotion"
+                      value={e.value}
+                      defaultChecked={trade.emotion === e.value}
+                      className="peer sr-only"
+                    />
+                    <span className="flex flex-col items-center gap-1 rounded-lg border border-panel-line bg-panel-inset px-2.5 py-2 text-[11px] text-ink-muted peer-checked:border-gain/50 peer-checked:bg-gain/10 peer-checked:text-gain transition-colors">
+                      <span className="text-base leading-none">{e.emoji}</span>
+                      {e.value}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className={labelClass}>Regeleinhaltung</label>
+              <div className="flex gap-2">
+                {RULE_OPTIONS.map((r) => (
+                  <label key={r.value} className="flex-1 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="ruleAdherence"
+                      value={r.value}
+                      defaultChecked={trade.rule_adherence === r.value}
+                      className="peer sr-only"
+                    />
+                    <span className="flex items-center justify-center gap-2 rounded-lg border border-panel-line bg-panel-inset px-3 py-2.5 text-xs text-ink-muted peer-checked:border-gain/50 peer-checked:bg-gain/10 peer-checked:text-gain transition-colors">
+                      <span>{r.emoji}</span>
+                      {r.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className={labelClass} htmlFor="improvementNote">
+                Nächstes Mal besser machen
               </label>
               <input
-                id="preTradeEmotion"
-                name="preTradeEmotion"
-                placeholder="z. B. Ruhig, Nervös"
-                defaultValue={trade.pre_trade_emotion ?? ""}
+                id="improvementNote"
+                name="improvementNote"
+                maxLength={140}
+                placeholder="z. B. Stop nicht vorzeitig verschieben"
+                defaultValue={trade.improvement_note ?? ""}
                 className={inputClass}
               />
             </div>

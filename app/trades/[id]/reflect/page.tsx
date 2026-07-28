@@ -2,23 +2,8 @@ import { redirect, notFound } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { createClient } from "@/lib/supabase/server";
 import { fetchProfile } from "@/lib/supabase/queries";
+import { EMOTIONS, RULE_OPTIONS as RULES } from "@/lib/tradeTags";
 import { saveReflection, skipReflection } from "./actions";
-
-const EMOTIONS = [
-  { value: "Diszipliniert", emoji: "😊" },
-  { value: "Ruhig", emoji: "😌" },
-  { value: "Nervös", emoji: "😰" },
-  { value: "Gier", emoji: "🤑" },
-  { value: "FOMO", emoji: "😤" },
-  { value: "Rache", emoji: "😡" },
-  { value: "Neutral", emoji: "😐" },
-];
-
-const RULES = [
-  { value: "eingehalten", emoji: "✅", label: "Eingehalten" },
-  { value: "teilweise", emoji: "⚠️", label: "Teilweise" },
-  { value: "gebrochen", emoji: "❌", label: "Gebrochen" },
-];
 
 const STRATEGIES = ["ORB", "VWAP Reject", "Breakout", "Range", "Trend Continuation"];
 

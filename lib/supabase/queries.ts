@@ -164,6 +164,7 @@ export interface Profile {
   musicUrl: string | null;
   leaderboardOptIn: boolean;
   leaderboardDisplayName: string | null;
+  tradingRules: string[];
 }
 
 // Liefert immer nutzbare Defaults, auch falls die Trigger-basierte
@@ -171,7 +172,9 @@ export interface Profile {
 export async function fetchProfile(supabase: SupabaseClient, userId: string): Promise<Profile> {
   const { data } = await supabase
     .from("profiles")
-    .select("active_widgets, music_provider, music_url, leaderboard_opt_in, leaderboard_display_name")
+    .select(
+      "active_widgets, music_provider, music_url, leaderboard_opt_in, leaderboard_display_name, trading_rules"
+    )
     .eq("id", userId)
     .maybeSingle();
 
@@ -181,5 +184,6 @@ export async function fetchProfile(supabase: SupabaseClient, userId: string): Pr
     musicUrl: data?.music_url ?? null,
     leaderboardOptIn: data?.leaderboard_opt_in ?? false,
     leaderboardDisplayName: data?.leaderboard_display_name ?? null,
+    tradingRules: data?.trading_rules ?? [],
   };
 }

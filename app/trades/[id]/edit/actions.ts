@@ -26,6 +26,9 @@ export async function updateTrade(tradeId: string, formData: FormData) {
   const pointValue = parseFloat(formData.get("pointValue") as string) || 1;
   const setup = (formData.get("setup") as string) || null;
   const preTradeEmotion = (formData.get("preTradeEmotion") as string) || null;
+  const emotion = (formData.get("emotion") as string) || null;
+  const ruleAdherence = (formData.get("ruleAdherence") as string) || null;
+  const improvementNote = (formData.get("improvementNote") as string) || null;
   const notes = (formData.get("notes") as string) || null;
   const openedAt = formData.get("openedAt") as string;
   const closedAt = formData.get("closedAt") as string;
@@ -67,6 +70,9 @@ export async function updateTrade(tradeId: string, formData: FormData) {
     pnl,
     setup,
     pre_trade_emotion: preTradeEmotion,
+    emotion,
+    rule_adherence: ruleAdherence,
+    improvement_note: improvementNote,
     notes,
     opened_at: new Date(openedAt).toISOString(),
     closed_at: new Date(closedAt).toISOString(),

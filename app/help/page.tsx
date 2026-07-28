@@ -42,7 +42,7 @@ const SECTIONS = [
   },
   {
     title: "Einstellungen",
-    text: "Dashboard-Widgets einzeln an- oder abschalten. Musik-Integration: Spotify-, Apple-Music-, YouTube-Music- oder SoundCloud-Link einfügen — erscheint danach als Player über den Musik-Button (🎵) oben rechts, ohne dass ein Konto verknüpft wird.",
+    text: "Dashboard-Widgets einzeln an- oder abschalten, darunter auch „Mein Regelwerk" — trag dort deine persönlichen Trading-Regeln ein (eine pro Zeile), sie erscheinen dann als Checkliste auf dem Dashboard. Musik-Integration: Spotify-, Apple-Music-, YouTube-Music- oder SoundCloud-Link einfügen — erscheint danach als Player über den Musik-Button (🎵) oben rechts, ohne dass ein Konto verknüpft wird.",
   },
   {
     title: "App installieren",

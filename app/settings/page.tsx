@@ -5,7 +5,7 @@ import { fetchProfile } from "@/lib/supabase/queries";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { WIDGET_CATALOG } from "@/lib/widgets";
 import { MUSIC_PROVIDERS, getMusicEmbedUrl } from "@/lib/music";
-import { saveWidgetPreferences, saveMusicPreference, saveLeaderboardPreference } from "./actions";
+import { saveWidgetPreferences, saveMusicPreference, saveLeaderboardPreference, saveTradingRules } from "./actions";
 
 export default async function SettingsPage({
   searchParams,
@@ -17,6 +17,8 @@ export default async function SettingsPage({
     leaderboardError?: string;
     widgetSaved?: string;
     widgetError?: string;
+    rulesSaved?: string;
+    rulesError?: string;
   };
 }) {
   const supabase = createClient();
@@ -82,6 +84,43 @@ export default async function SettingsPage({
               className="w-full rounded-panel bg-gain/10 border border-gain/30 px-4 py-2 text-sm font-medium text-gain hover:bg-gain/20 transition-colors mt-2"
             >
               Widgets speichern
+            </button>
+          </form>
+        </div>
+
+        {/* Mein Regelwerk */}
+        <div className="rounded-panel bg-panel-raised border border-panel-line p-5">
+          <h2 className="text-sm font-semibold text-ink mb-1">Mein Regelwerk</h2>
+          <p className="text-xs text-ink-muted mb-4">
+            Deine persönlichen Trading-Regeln — eine pro Zeile. Erscheinen
+            als eigenes Dashboard-Widget (falls oben aktiviert), damit du
+            sie immer vor Augen hast.
+          </p>
+
+          {searchParams.rulesError && (
+            <div className="mb-4 rounded-md border border-loss/30 bg-loss/10 px-3 py-2 text-sm text-loss">
+              {searchParams.rulesError}
+            </div>
+          )}
+          {searchParams.rulesSaved && !searchParams.rulesError && (
+            <div className="mb-4 rounded-md border border-gain/30 bg-gain/10 px-3 py-2 text-sm text-gain">
+              Gespeichert.
+            </div>
+          )}
+
+          <form action={saveTradingRules} className="space-y-3">
+            <textarea
+              name="tradingRules"
+              rows={6}
+              placeholder={"z. B.\nImmer einen Stop-Loss setzen\nMax. 2% Risiko pro Trade\nNach 2 Verlusten Pause machen"}
+              defaultValue={profile.tradingRules.join("\n")}
+              className="w-full rounded-md bg-panel-inset border border-panel-line px-3 py-2 text-sm text-ink outline-none focus:border-gain/50"
+            />
+            <button
+              type="submit"
+              className="w-full rounded-panel bg-gain/10 border border-gain/30 px-4 py-2 text-sm font-medium text-gain hover:bg-gain/20 transition-colors"
+            >
+              Regelwerk speichern
             </button>
           </form>
         </div>

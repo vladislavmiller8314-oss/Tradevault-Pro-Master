@@ -13,6 +13,7 @@ export const WIDGET_CATALOG: WidgetDef[] = [
   { key: "accounts_overview", label: "Kontenübersicht" },
   { key: "market_monitor", label: "Marktmonitor (TradingView)" },
   { key: "economic_calendar", label: "Wirtschaftskalender (Investing.com)" },
+  { key: "trading_rules", label: "Mein Regelwerk" },
 ];
 
 export const DEFAULT_ACTIVE_WIDGETS = WIDGET_CATALOG.map((w) => w.key);

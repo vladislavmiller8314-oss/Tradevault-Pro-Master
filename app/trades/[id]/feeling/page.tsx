@@ -2,17 +2,8 @@ import { redirect, notFound } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { createClient } from "@/lib/supabase/server";
 import { fetchProfile } from "@/lib/supabase/queries";
+import { EMOTIONS } from "@/lib/tradeTags";
 import { saveFeelingBefore, skipFeelingBefore } from "./actions";
-
-const EMOTIONS = [
-  { value: "Ruhig", emoji: "😌" },
-  { value: "Zuversichtlich", emoji: "😊" },
-  { value: "Nervös", emoji: "😰" },
-  { value: "Müde", emoji: "😴" },
-  { value: "Gestresst", emoji: "😣" },
-  { value: "Ungeduldig", emoji: "😤" },
-  { value: "Neutral", emoji: "😐" },
-];
 
 export default async function FeelingBeforePage({ params }: { params: { id: string } }) {
   const supabase = createClient();

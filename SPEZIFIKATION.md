@@ -293,7 +293,32 @@ Variante gerade angezeigt wird. Mindestens 5 Trades nötig für beide
 Varianten. Neue Tabelle `coach_insights` — bei bestehenden Datenbanken
 über `supabase/migration_coach.sql` nachziehen.
 
-## 12. Nächste Schritte (Priorität)
+## 12. Vier Nachbesserungen
+
+1. **"Trades heute"-Zähler-Bug behoben:** Das Dashboard hat bisher nur
+   die letzten 5 Trades geladen und daraus *auch* "Trades heute",
+   Winrate und Profit Factor berechnet — bei mehr als 5 Trades insgesamt
+   waren diese Werte falsch, sobald ältere Trades aus den "letzten 5"
+   rausfielen. Jetzt werden alle Trades geladen; nur die "Letzte
+   Trades"-Anzeige zeigt weiterhin nur 5 davon (`app/page.tsx`).
+2. **Emotion vorher/nachher + Regeleinhaltung jetzt auch beim
+   Bearbeiten editierbar**, nicht nur beim Erfassen/Reflektieren.
+   Wichtig für CSV-importierte Trades, die diese Felder anfangs leer
+   haben. Neue gemeinsame Emoji-Liste in `lib/tradeTags.ts` (13
+   Emotionen: Ruhig, Zuversichtlich, Diszipliniert, Neutral, Müde,
+   Nervös, Gestresst, Ungeduldig, Unsicher, Angst, Gier, FOMO, Rache),
+   verwendet von der Vorher-Seite, der Reflexions-Seite und jetzt auch
+   dem Bearbeiten-Formular — überall dieselben Optionen.
+3. **Neues Widget „Mein Regelwerk":** persönliche Trading-Regeln (frei
+   formulierter Text, eine Regel pro Zeile, max. 30) unter
+   „Einstellungen" eintragen, erscheinen als nummerierte Checkliste auf
+   dem Dashboard (`components/TradingRulesWidget.tsx`). Getrennt von der
+   Regeleinhaltung pro Trade — das hier ist die eigene Regelliste selbst,
+   nicht die Frage "hab ich mich dran gehalten". Neue Spalte
+   `trading_rules` in `profiles` — bei bestehenden Datenbanken über
+   `supabase/migration_rules.sql` nachziehen.
+
+## 13. Nächste Schritte (Priorität)
 
 1. ~~Supabase-Projekt anlegen, `supabase/schema.sql` ausführen~~
 2. ~~Auth (E-Mail/Passwort) über Supabase Auth verdrahten~~ — erledigt

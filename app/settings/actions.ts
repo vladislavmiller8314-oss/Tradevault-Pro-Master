@@ -110,3 +110,33 @@ export async function saveLeaderboardPreference(formData: FormData) {
   revalidatePath("/settings");
   redirect("/settings?leaderboardSaved=1");
 }
+
+export async function saveTradingRules(formData: FormData) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const raw = (formData.get("tradingRules") as string) || "";
+  const rules = raw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 30); // Sicherheitsgrenze, damit das Widget nicht ausufert
+
+  const { error } = await supabase
+    .from("profiles")
+    .upsert({ id: user.id, trading_rules: rules }, { onConflict: "id" });
+
+  if (error) {
+    redirect(`/settings?rulesError=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/settings");
+  redirect("/settings?rulesSaved=1");
+}

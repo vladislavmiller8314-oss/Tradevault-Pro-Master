@@ -5,6 +5,7 @@ import { PerformanceGauge } from "@/components/PerformanceGauge";
 import { EquityCurve } from "@/components/EquityCurve";
 import { RecentTrades } from "@/components/RecentTrades";
 import { AccountsOverview } from "@/components/AccountsOverview";
+import { TradingRulesWidget } from "@/components/TradingRulesWidget";
 import { TradingViewMarketOverview } from "@/components/TradingViewMarketOverview";
 import { InvestingEconomicCalendar } from "@/components/InvestingEconomicCalendar";
 import { AppShell } from "@/components/AppShell";
@@ -32,12 +33,14 @@ export default async function DashboardPage({
 
   const selectedAccountId = searchParams.account;
 
-  const [accounts, trades, equity, profile] = await Promise.all([
+  const [accounts, allTrades, equity, profile] = await Promise.all([
     fetchAccountsWithBalances(supabase, user.id),
-    fetchTrades(supabase, user.id, 5, selectedAccountId),
+    fetchTrades(supabase, user.id, undefined, selectedAccountId),
     fetchEquityCurve(supabase, user.id, selectedAccountId),
     fetchProfile(supabase, user.id),
   ]);
+
+  const trades = allTrades.slice(0, 5); // nur für die "Letzte Trades"-Anzeige
 
   const visibleAccounts = selectedAccountId
     ? accounts.filter((a) => a.id === selectedAccountId)
@@ -47,14 +50,14 @@ export default async function DashboardPage({
 
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
-  const todaysTrades = trades.filter((t) => new Date(t.closedAt) >= startOfToday);
+  const todaysTrades = allTrades.filter((t) => new Date(t.closedAt) >= startOfToday);
 
   const totalBalance = visibleAccounts.reduce((sum, a) => sum + a.balance, 0);
   const dayPnl = todaysTrades.reduce((sum, t) => sum + t.pnl, 0);
-  const wins = trades.filter((t) => t.pnl > 0).length;
-  const winrate = trades.length ? Math.round((wins / trades.length) * 100) : 0;
-  const grossWin = trades.filter((t) => t.pnl > 0).reduce((s, t) => s + t.pnl, 0);
-  const grossLoss = Math.abs(trades.filter((t) => t.pnl < 0).reduce((s, t) => s + t.pnl, 0));
+  const wins = allTrades.filter((t) => t.pnl > 0).length;
+  const winrate = allTrades.length ? Math.round((wins / allTrades.length) * 100) : 0;
+  const grossWin = allTrades.filter((t) => t.pnl > 0).reduce((s, t) => s + t.pnl, 0);
+  const grossLoss = Math.abs(allTrades.filter((t) => t.pnl < 0).reduce((s, t) => s + t.pnl, 0));
   const profitFactor = grossLoss === 0 ? grossWin : grossWin / grossLoss;
 
   const shellProps = {
@@ -86,7 +89,12 @@ export default async function DashboardPage({
 
   const hasKpiRow = on("balance") || on("pnl") || on("winrate") || on("profit_factor");
   const hasHeroRow = on("equity_curve") || on("winrate") || on("profit_factor");
-  const hasBottomRow = on("recent_trades") || on("accounts_overview") || on("market_monitor") || on("economic_calendar");
+  const hasBottomRow =
+    on("recent_trades") ||
+    on("accounts_overview") ||
+    on("market_monitor") ||
+    on("economic_calendar") ||
+    on("trading_rules");
 
   return (
     <AppShell {...shellProps}>
@@ -181,8 +189,9 @@ export default async function DashboardPage({
                 </div>
               ))}
             {on("accounts_overview") && <AccountsOverview accounts={visibleAccounts} />}
-            {(on("market_monitor") || on("economic_calendar")) && (
+            {(on("market_monitor") || on("economic_calendar") || on("trading_rules")) && (
               <div className="space-y-4">
+                {on("trading_rules") && <TradingRulesWidget rules={profile.tradingRules} />}
                 {on("market_monitor") && <TradingViewMarketOverview />}
                 {on("economic_calendar") && <InvestingEconomicCalendar />}
               </div>
