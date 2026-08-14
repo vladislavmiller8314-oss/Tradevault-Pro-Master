@@ -59,7 +59,7 @@ export default async function SettingsPage({
           <p className="text-xs text-ink-muted mb-4">
             Bestimme, welche Module auf deinem Dashboard erscheinen.
           </p>
-          <form action={saveWidgetPreferences} className="space-y-2">
+          <form key={profile.activeWidgets.join(",")} action={saveWidgetPreferences} className="space-y-2">
             {WIDGET_CATALOG.map((w) => (
               <label
                 key={w.key}
@@ -110,6 +110,7 @@ export default async function SettingsPage({
 
           <form action={saveTradingRules} className="space-y-3">
             <textarea
+              key={profile.tradingRules.join("|")}
               name="tradingRules"
               rows={6}
               placeholder={"z. B.\nImmer einen Stop-Loss setzen\nMax. 2% Risiko pro Trade\nNach 2 Verlusten Pause machen"}
@@ -145,7 +146,7 @@ export default async function SettingsPage({
             </div>
           )}
 
-          <form action={saveMusicPreference} className="space-y-3">
+          <form key={`${profile.musicProvider}-${profile.musicUrl}`} action={saveMusicPreference} className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <label className="cursor-pointer">
                 <input
@@ -235,7 +236,7 @@ export default async function SettingsPage({
             </div>
           )}
 
-          <form action={saveLeaderboardPreference} className="space-y-3">
+          <form key={`${profile.leaderboardOptIn}-${profile.leaderboardDisplayName}`} action={saveLeaderboardPreference} className="space-y-3">
             <label className="flex items-center justify-between rounded-md px-3 py-2.5 bg-panel-inset border border-panel-line cursor-pointer">
               <span className="text-sm text-ink">An der Rangliste teilnehmen</span>
               <input
