@@ -108,3 +108,9 @@ create policy "coach_insights: eigene Analysen" on coach_insights
 -- 6) Persönliches Regelwerk (Widget)
 alter table profiles
   add column if not exists trading_rules text[] not null default array[]::text[];
+
+update profiles
+set active_widgets = array_append(active_widgets, 'trading_rules')
+where not ('trading_rules' = any(active_widgets));
+
+NOTIFY pgrst, 'reload schema';
