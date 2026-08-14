@@ -19,6 +19,7 @@ export default async function SettingsPage({
     widgetError?: string;
     rulesSaved?: string;
     rulesError?: string;
+    rulesCount?: string;
   };
 }) {
   const supabase = createClient();
@@ -104,9 +105,14 @@ export default async function SettingsPage({
           )}
           {searchParams.rulesSaved && !searchParams.rulesError && (
             <div className="mb-4 rounded-md border border-gain/30 bg-gain/10 px-3 py-2 text-sm text-gain">
-              Gespeichert.
+              Gespeichert ({searchParams.rulesCount ?? "?"} Regel(n) übermittelt). Server liest gerade{" "}
+              {profile.tradingRules.length} Regel(n) aus der Datenbank.
             </div>
           )}
+
+          <div className="mb-3 text-[10px] text-ink-faint font-mono break-all">
+            Debug: profile.tradingRules = {JSON.stringify(profile.tradingRules)}
+          </div>
 
           <form action={saveTradingRules} className="space-y-3">
             <textarea

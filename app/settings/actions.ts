@@ -138,5 +138,5 @@ export async function saveTradingRules(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/settings");
-  redirect("/settings?rulesSaved=1");
+  redirect(`/settings?rulesSaved=1&rulesCount=${rules.length}`);
 }
