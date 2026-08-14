@@ -7,6 +7,9 @@ import { WIDGET_CATALOG } from "@/lib/widgets";
 import { MUSIC_PROVIDERS, getMusicEmbedUrl } from "@/lib/music";
 import { saveWidgetPreferences, saveMusicPreference, saveLeaderboardPreference, saveTradingRules } from "./actions";
 
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 export default async function SettingsPage({
   searchParams,
 }: {

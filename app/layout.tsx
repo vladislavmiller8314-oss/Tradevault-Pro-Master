@@ -28,6 +28,16 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+// Next.js cached standardmäßig fetch()-Aufrufe (auch die von Supabase
+// intern verwendeten) aggressiv. Für eine App, die ständig frische
+// Datenbank-Werte direkt nach dem Schreiben anzeigen muss (Einstellungen,
+// Dashboard-Zahlen usw.), ist das kontraproduktiv — ohne diese Zeile kann
+// es passieren, dass man nach dem Speichern kurzzeitig veraltete Werte
+// zurückbekommt. Gilt für alle Routen, da hier im Root-Layout gesetzt.
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+export const revalidate = 0;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="de" className={`${inter.variable} ${mono.variable}`}>
