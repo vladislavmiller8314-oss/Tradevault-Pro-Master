@@ -172,13 +172,7 @@ export interface Profile {
 // Profil-Erstellung (siehe schema.sql) noch nicht gegriffen hat.
 export async function fetchProfile(supabase: SupabaseClient, userId: string): Promise<Profile> {
   noStore();
-  const { data } = await supabase
-    .from("profiles")
-    .select(
-      "active_widgets, music_provider, music_url, leaderboard_opt_in, leaderboard_display_name, trading_rules"
-    )
-    .eq("id", userId)
-    .maybeSingle();
+  const { data } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
 
   return {
     activeWidgets: data?.active_widgets ?? DEFAULT_ACTIVE_WIDGETS,
