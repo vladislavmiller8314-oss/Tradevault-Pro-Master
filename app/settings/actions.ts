@@ -128,28 +128,15 @@ export async function saveTradingRules(formData: FormData) {
     .filter(Boolean)
     .slice(0, 30); // Sicherheitsgrenze, damit das Widget nicht ausufert
 
-  const { data: upsertResult, error } = await supabase
+  const { error } = await supabase
     .from("profiles")
-    .upsert({ id: user.id, trading_rules: rules }, { onConflict: "id" })
-    .select("trading_rules")
-    .maybeSingle();
+    .upsert({ id: user.id, trading_rules: rules }, { onConflict: "id" });
 
   if (error) {
     redirect(`/settings?rulesError=${encodeURIComponent(error.message)}`);
   }
 
-  const { data: freshRead } = await supabase
-    .from("profiles")
-    .select("trading_rules")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  const upsertCount = upsertResult?.trading_rules?.length ?? "null";
-  const freshCount = freshRead?.trading_rules?.length ?? "null";
-
   revalidatePath("/");
   revalidatePath("/settings");
-  redirect(
-    `/settings?rulesSaved=1&rulesCount=${rules.length}&upsertCount=${upsertCount}&freshCount=${freshCount}`
-  );
+  redirect(`/settings?rulesSaved=1&rulesCount=${rules.length}`);
 }

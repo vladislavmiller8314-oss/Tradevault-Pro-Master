@@ -341,11 +341,26 @@ Varianten. Neue Tabelle `coach_insights` — bei bestehenden Datenbanken
   Fehler geworfen, der den Rest (inkl. `get_leaderboard()`-Funktion)
   gestoppt hat. Lösung: die kleinere, eigenständige
   `supabase/migration_leaderboard.sql` separat ausführen.
-- **Musik-Link/Regelwerk „speichert nicht":** über eine Roh-Diagnose
-  (temporär im Code, mittlerweile wieder entfernt) zweifelsfrei auf
-  fehlerhafte Texteingabe zurückgeführt (z. B. „chttps://..." mit einem
-  „c" zu viel, verstümmelter Text im Regelwerk-Feld) — Schreiben, RLS,
-  Next.js-Caching und Anzeige funktionieren nachweislich korrekt.
+- **Musik-Link/Regelwerk „speichert nicht" — echter Bug, gefunden und
+  behoben:** Ein Teil der Fälle war tatsächlich fehlerhafte Texteingabe
+  (z. B. „chttps://..." mit einem „c" zu viel). Es blieb aber ein
+  eigenständiger, reproduzierbarer Cache-Bug übrig: Schreiben
+  funktionierte immer korrekt (mehrfach über direkte Datenbank-Prüfung
+  bestätigt), aber `fetchProfile`s spezifische Mehrspalten-Abfrage
+  (`select("active_widgets, music_provider, ...")`) lieferte nach einem
+  Speichern-Redirect veraltete/leere Daten zurück, während andere,
+  leicht abweichende Abfragen (Diagnose-Code) korrekt frische Daten
+  zeigten — ein Hinweis auf einen alten, an genau diese Abfrage-Form
+  gebundenen Cache-Eintrag. Behoben durch zwei Maßnahmen in
+  `lib/supabase/`: (1) `server.ts` — dem Supabase-Client explizit
+  `global: { fetch: (url, options) => fetch(url, { ...options, cache:
+  "no-store" }) } }` mitgegeben, (2) `queries.ts` — `fetchProfile` von
+  der spezifischen Spaltenliste auf `select("*")` umgestellt, was die
+  Abfrage-Form komplett ändert und dadurch jeden an die alte Form
+  gebundenen Cache-Eintrag umgeht. Seitdem bestätigt funktionierend.
+- **Coach „Could not find the table 'coach_insights'":** dieselbe
+  Ursache wie bei der Rangliste — `supabase/migration_coach.sql`
+  separat ausführen, falls noch nicht geschehen.
 
 ## 14. Nächste Schritte (Priorität)
 
