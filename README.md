@@ -145,6 +145,11 @@ Jeder Push auf den Hauptbranch deployt automatisch neu.
   Einstellungen eintragen, erscheinen als Checkliste auf dem Dashboard
 - "Trades heute"/Winrate/Profit-Factor-Bug auf dem Dashboard behoben
   (wurden bisher fälschlich nur aus den letzten 5 Trades berechnet)
+- Trade-Detailseite: Trades in Replay/Hall of Fame/Shame anklickbar,
+  zeigt alle Daten plus einen kostenlosen TradingView-Chart zum
+  Instrument (allgemeiner Marktkontext, keine eingezeichneten
+  Ein-/Ausstiegspunkte — dafür bräuchte es TradingViews
+  kostenpflichtige Charting-Library)
 - Supabase-Schema (Accounts, Trades, Equity-Snapshots, Replay-Highlights,
   Storage-Bucket für Screenshots, Row Level Security)
 - Design-System nach Vorgabe (Farben, Inter/JetBrains Mono, Tailwind-Tokens)

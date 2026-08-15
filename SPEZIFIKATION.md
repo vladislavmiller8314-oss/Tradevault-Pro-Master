@@ -318,7 +318,36 @@ Varianten. Neue Tabelle `coach_insights` — bei bestehenden Datenbanken
    `trading_rules` in `profiles` — bei bestehenden Datenbanken über
    `supabase/migration_rules.sql` nachziehen.
 
-## 13. Nächste Schritte (Priorität)
+## 13. Trade-Detailseite / Replay-Klick, plus Statusklärung zu 4 gemeldeten Problemen
+
+- **Trades in Replay/Hall of Fame/Shame sind jetzt klickbar**, öffnen
+  `/trades/[id]` — neue Detailseite mit allen erfassten Daten
+  (Entry/Exit, Emotionen, Regeleinhaltung, Notizen, Screenshot) plus
+  einem kostenlosen TradingView-Chart für das Instrument
+  (`lib/instrumentSymbols.ts` mappt rohe Instrument-Codes wie „ES"/„MES"
+  auf ein anzeigbares Symbol, `components/TradingViewSymbolChart.tsx`).
+  **Ehrlich dazu:** das zeigt den allgemeinen Marktverlauf, nicht den
+  exakten Ein-/Ausstiegspunkt als Markierung im Chart eingezeichnet —
+  ein echtes Kerze-für-Kerze-Replay mit eigenen Markierungen bräuchte
+  TradingViews kostenpflichtige Charting-Library (eigene Freigabe von
+  TradingView nötig), das ist hier nicht umgesetzt.
+- **Coach-Trade-Schwelle:** im Code durchsucht, überall konsistent auf 5
+  Trades gesetzt (nirgends 3), `fetchTrades` ohne jedes Limit — nutzt
+  also bereits alle Journal-Trades. Konnte hier keinen Bug finden;
+  vermutlich waren zum Testzeitpunkt tatsächlich noch keine 5 Trades
+  erfasst, oder die Zahl wurde falsch erinnert.
+- **Rangliste „konnte nicht geladen werden":** wahrscheinlich hat beim
+  Ausführen der großen `migration_all.sql` eine frühere Zeile einen
+  Fehler geworfen, der den Rest (inkl. `get_leaderboard()`-Funktion)
+  gestoppt hat. Lösung: die kleinere, eigenständige
+  `supabase/migration_leaderboard.sql` separat ausführen.
+- **Musik-Link/Regelwerk „speichert nicht":** über eine Roh-Diagnose
+  (temporär im Code, mittlerweile wieder entfernt) zweifelsfrei auf
+  fehlerhafte Texteingabe zurückgeführt (z. B. „chttps://..." mit einem
+  „c" zu viel, verstümmelter Text im Regelwerk-Feld) — Schreiben, RLS,
+  Next.js-Caching und Anzeige funktionieren nachweislich korrekt.
+
+## 14. Nächste Schritte (Priorität)
 
 1. ~~Supabase-Projekt anlegen, `supabase/schema.sql` ausführen~~
 2. ~~Auth (E-Mail/Passwort) über Supabase Auth verdrahten~~ — erledigt

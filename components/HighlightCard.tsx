@@ -1,4 +1,5 @@
 import { clsx } from "clsx";
+import Link from "next/link";
 import type { Trade } from "@/types/trade";
 import { removeHighlight } from "@/app/replay/actions";
 
@@ -14,9 +15,9 @@ export function HighlightCard({ highlight }: { highlight: Highlight }) {
   return (
     <div className="rounded-panel bg-panel-raised border border-panel-line p-4">
       <div className="flex items-center justify-between mb-2">
-        <div className="text-sm font-semibold">
+        <Link href={`/trades/${t.id}`} className="text-sm font-semibold hover:underline">
           {t.instrument} · <span className={t.direction === "Long" ? "text-gain" : "text-loss"}>{t.direction}</span>
-        </div>
+        </Link>
         <span className={clsx("tabular text-sm font-semibold", t.pnl >= 0 ? "text-gain" : "text-loss")}>
           {t.pnl >= 0 ? "+" : ""}
           {t.pnl.toFixed(2)} $
@@ -24,12 +25,14 @@ export function HighlightCard({ highlight }: { highlight: Highlight }) {
       </div>
 
       {t.screenshotUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={t.screenshotUrl}
-          alt={`Screenshot ${t.instrument}`}
-          className="rounded-md border border-panel-line mb-2 max-h-32 w-full object-cover"
-        />
+        <Link href={`/trades/${t.id}`} className="block mb-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={t.screenshotUrl}
+            alt={`Screenshot ${t.instrument}`}
+            className="rounded-md border border-panel-line max-h-32 w-full object-cover"
+          />
+        </Link>
       )}
 
       <div className="text-xs text-ink-faint mb-2">

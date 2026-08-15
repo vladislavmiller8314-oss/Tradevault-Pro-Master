@@ -1,4 +1,5 @@
 import { clsx } from "clsx";
+import Link from "next/link";
 import type { Trade } from "@/types/trade";
 
 export function Timeline({ trades }: { trades: Trade[] }) {
@@ -18,7 +19,10 @@ export function Timeline({ trades }: { trades: Trade[] }) {
                 t.pnl >= 0 ? "bg-gain" : "bg-loss"
               )}
             />
-            <div className="rounded-panel bg-panel-raised border border-panel-line p-4">
+            <Link
+              href={`/trades/${t.id}`}
+              className="block rounded-panel bg-panel-raised border border-panel-line p-4 hover:border-gain/40 transition-colors"
+            >
               <div className="flex items-center justify-between mb-1 gap-3">
                 <div className="text-sm font-medium">
                   {t.instrument} · <span className={t.direction === "Long" ? "text-gain" : "text-loss"}>{t.direction}</span>
@@ -47,20 +51,18 @@ export function Timeline({ trades }: { trades: Trade[] }) {
               </div>
 
               {t.screenshotUrl && (
-                <a href={t.screenshotUrl} target="_blank" rel="noreferrer" className="block mb-2">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={t.screenshotUrl}
-                    alt={`Screenshot ${t.instrument}`}
-                    className="rounded-md border border-panel-line max-h-40 w-full object-cover"
-                  />
-                </a>
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={t.screenshotUrl}
+                  alt={`Screenshot ${t.instrument}`}
+                  className="rounded-md border border-panel-line max-h-40 w-full object-cover mb-2"
+                />
               )}
 
               {t.improvementNote && (
                 <div className="text-xs text-ink-muted italic">„{t.improvementNote}"</div>
               )}
-            </div>
+            </Link>
           </div>
         ))}
       </div>
