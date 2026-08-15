@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { unstable_noStore as noStore } from "next/cache";
 import type { Account, EquityPoint, Trade } from "@/types/trade";
 import { DEFAULT_ACTIVE_WIDGETS } from "@/lib/widgets";
 import type { MusicProvider } from "@/lib/music";
@@ -170,6 +171,7 @@ export interface Profile {
 // Liefert immer nutzbare Defaults, auch falls die Trigger-basierte
 // Profil-Erstellung (siehe schema.sql) noch nicht gegriffen hat.
 export async function fetchProfile(supabase: SupabaseClient, userId: string): Promise<Profile> {
+  noStore();
   const { data } = await supabase
     .from("profiles")
     .select(

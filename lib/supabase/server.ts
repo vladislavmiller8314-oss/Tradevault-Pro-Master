@@ -26,6 +26,15 @@ export function createClient() {
           }
         },
       },
+      global: {
+        // Next.js patcht das globale fetch() und cached es standardmäßig,
+        // auch für Aufrufe von Drittanbieter-Bibliotheken wie diesem
+        // Supabase-Client. Ohne diese Zeile kann es passieren, dass man
+        // direkt nach dem Schreiben kurzzeitig eine veraltete, zwischen-
+        // gespeicherte Antwort zurückbekommt — genau hier explizit
+        // unterbunden, unabhängig von Route-Einstellungen wie "dynamic".
+        fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }),
+      },
     }
   );
 }
