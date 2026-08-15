@@ -128,15 +128,30 @@ export async function saveTradingRules(formData: FormData) {
     .filter(Boolean)
     .slice(0, 30); // Sicherheitsgrenze, damit das Widget nicht ausufert
 
-  const { error } = await supabase
+  const { data: upsertResult, error } = await supabase
     .from("profiles")
-    .upsert({ id: user.id, trading_rules: rules }, { onConflict: "id" });
+    .upsert({ id: user.id, trading_rules: rules }, { onConflict: "id" })
+    .select("trading_rules")
+    .maybeSingle();
 
   if (error) {
     redirect(`/settings?rulesError=${encodeURIComponent(error.message)}`);
   }
 
+  // Zusätzlich direkt danach nochmal frisch lesen (eigene, neue Abfrage),
+  // um Schreiben und Lesen wirklich getrennt zu diagnostizieren.
+  const { data: freshRead } = await supabase
+    .from("profiles")
+    .select("trading_rules")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const upsertCount = upsertResult?.trading_rules?.length ?? "null";
+  const freshCount = freshRead?.trading_rules?.length ?? "null";
+
   revalidatePath("/");
   revalidatePath("/settings");
-  redirect(`/settings?rulesSaved=1&rulesCount=${rules.length}`);
+  redirect(
+    `/settings?rulesSaved=1&rulesCount=${rules.length}&upsertCount=${upsertCount}&freshCount=${freshCount}`
+  );
 }
