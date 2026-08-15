@@ -33,7 +33,8 @@ export function createClient() {
         // direkt nach dem Schreiben kurzzeitig eine veraltete, zwischen-
         // gespeicherte Antwort zurückbekommt — genau hier explizit
         // unterbunden, unabhängig von Route-Einstellungen wie "dynamic".
-        fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }),
+        fetch: (url: RequestInfo | URL, options: RequestInit = {}) =>
+          fetch(url, { ...options, cache: "no-store" }),
       },
     }
   );
