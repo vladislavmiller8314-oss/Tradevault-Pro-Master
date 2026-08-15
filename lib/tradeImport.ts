@@ -25,8 +25,8 @@ const HEADER_ALIASES: Record<string, string[]> = {
   exitPrice: ["exit price", "exit", "sell price", "avg exit price"],
   openedAt: ["entry time", "open time", "opened at", "entry date", "entry date/time"],
   closedAt: ["exit time", "close time", "closed at", "exit date", "exit date/time"],
-  fees: ["commission", "fees", "comm", "commissions"],
-  pnl: ["net pnl", "pnl", "p/l", "profit", "net profit"],
+  fees: ["commission", "fees", "fee", "comm", "commissions"],
+  pnl: ["net pnl", "net p/l", "pnl", "p/l", "profit", "net profit", "realized pnl", "realized p/l", "gross p/l", "gross pnl"],
 };
 
 function normalizeHeader(h: string): string {
@@ -105,6 +105,7 @@ export function detectColumns(headers: string[]): DetectedColumns {
         price,
         time: findColumn(headers, "time"),
         fees: findColumn(headers, "fees"),
+        pnl: findColumn(headers, "pnl"),
       },
     };
   }
@@ -165,6 +166,7 @@ interface Fill {
   price: number;
   time: Date;
   fees: number;
+  pnl?: number; // vom Export mitgelieferte Fill-P&L, falls vorhanden (genauer als Neuberechnung über Punktwert)
 }
 
 // FIFO-Matching: fasst einzelne Kauf-/Verkaufs-Fills pro Instrument zu
@@ -184,10 +186,11 @@ export function buildFromFills(
     const price = parseNumber(row[columns.price]);
     const time = zonedTimeToUtc(columns.time !== -1 ? row[columns.time] : "", timeZone);
     const fees = columns.fees !== -1 ? Math.abs(parseNumber(row[columns.fees])) : 0;
+    const pnl = columns.pnl !== undefined && columns.pnl !== -1 ? parseNumber(row[columns.pnl]) : undefined;
 
     if (!instrument || !direction || !quantity || !price || isNaN(time.getTime())) continue;
 
-    fills.push({ instrument: instrument.toUpperCase(), direction, quantity, price, time, fees });
+    fills.push({ instrument: instrument.toUpperCase(), direction, quantity, price, time, fees, pnl });
   }
 
   fills.sort((a, b) => a.time.getTime() - b.time.getTime());
@@ -209,6 +212,11 @@ export function buildFromFills(
       const matched = Math.min(lot.qty, remaining);
       const lotFeeShare = lot.fees * (matched / lot.originalQty);
       const fillFeeShare = fill.fees * (matched / fill.quantity);
+      // Bevorzugt die vom Export mitgelieferte P&L des schließenden Fills
+      // (anteilig, falls der Fill nur teilweise zu diesem Match gehört) —
+      // genauer als eine Neuberechnung über einen geschätzten Punktwert,
+      // und macht das Punktwert-Feld im Formular für solche Dateien überflüssig.
+      const proratedPnl = fill.pnl !== undefined ? fill.pnl * (matched / fill.quantity) : undefined;
 
       trades.push({
         instrument: fill.instrument,
@@ -217,6 +225,7 @@ export function buildFromFills(
         entryPrice: lot.price,
         exitPrice: fill.price,
         fees: lotFeeShare + fillFeeShare,
+        pnl: proratedPnl,
         openedAt: lot.time.toISOString(),
         closedAt: fill.time.toISOString(),
       });
