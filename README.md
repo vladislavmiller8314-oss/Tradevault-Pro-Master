@@ -150,6 +150,8 @@ Jeder Push auf den Hauptbranch deployt automatisch neu.
   Instrument (allgemeiner Marktkontext, keine eingezeichneten
   Ein-/Ausstiegspunkte — dafür bräuchte es TradingViews
   kostenpflichtige Charting-Library)
+- Chart mit Vollbild-Button und fester Zeit-/Preis-Referenzleiste
+  (bleibt auch im Vollbild sichtbar)
 - Supabase-Schema (Accounts, Trades, Equity-Snapshots, Replay-Highlights,
   Storage-Bucket für Screenshots, Row Level Security)
 - Design-System nach Vorgabe (Farben, Inter/JetBrains Mono, Tailwind-Tokens)

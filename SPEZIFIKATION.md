@@ -362,7 +362,24 @@ Varianten. Neue Tabelle `coach_insights` — bei bestehenden Datenbanken
   Ursache wie bei der Rangliste — `supabase/migration_coach.sql`
   separat ausführen, falls noch nicht geschehen.
 
-## 14. Nächste Schritte (Priorität)
+## 14. Chart-Vollbild + Referenz-Leiste
+
+`components/TradingViewSymbolChart.tsx` erweitert:
+
+- **Vollbild-Button** (echte Browser-Fullscreen-API auf den Chart-
+  Container, nicht simuliert) — funktioniert mit jedem eingebetteten
+  Widget, unabhängig von TradingView.
+- **Feste Referenz-Leiste** über dem Chart mit Entry-/Exit-Zeit und
+  -Preis, bleibt auch im Vollbild sichtbar (kein reines Overlay, das
+  beim Fullscreen-Wechsel verschwindet).
+- **Recherchiert und bewusst NICHT umgesetzt:** eine echte Markierung
+  direkt im Chart-Widget selbst — TradingView stellt klar, dass ihre
+  Charting-Library (die das könnte) explizit nicht für private/Hobby-
+  Projekte freigegeben wird, auch nicht die als „kostenlos" beworbene
+  Advanced-Charts-Bibliothek. Die Referenz-Leiste ist der praktikable
+  Ersatz dafür.
+
+## 15. Nächste Schritte (Priorität)
 
 1. ~~Supabase-Projekt anlegen, `supabase/schema.sql` ausführen~~
 2. ~~Auth (E-Mail/Passwort) über Supabase Auth verdrahten~~ — erledigt

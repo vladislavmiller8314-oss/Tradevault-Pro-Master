@@ -135,7 +135,13 @@ export default async function TradeDetailPage({ params }: { params: { id: string
           )}
         </div>
 
-        <TradingViewSymbolChart symbol={symbol} />
+        <TradingViewSymbolChart
+          symbol={symbol}
+          openedAt={trade.opened_at}
+          closedAt={trade.closed_at}
+          entryPrice={trade.entry_price}
+          exitPrice={trade.exit_price}
+        />
       </div>
     </AppShell>
   );
