@@ -23,6 +23,8 @@ export default async function SettingsPage({
     rulesSaved?: string;
     rulesError?: string;
     rulesCount?: string;
+    upsertCount?: string;
+    freshCount?: string;
   };
 }) {
   const supabase = createClient();
@@ -107,8 +109,11 @@ export default async function SettingsPage({
             </div>
           )}
           {searchParams.rulesSaved && !searchParams.rulesError && (
-            <div className="mb-4 rounded-md border border-gain/30 bg-gain/10 px-3 py-2 text-sm text-gain">
-              Gespeichert ({searchParams.rulesCount ?? profile.tradingRules.length} Regel(n)).
+            <div className="mb-4 rounded-md border border-gain/30 bg-gain/10 px-3 py-2 text-xs text-gain font-mono space-y-0.5">
+              <div>1. Übermittelt (Formular): {searchParams.rulesCount ?? "?"}</div>
+              <div>2. Upsert gibt zurück: {searchParams.upsertCount ?? "?"}</div>
+              <div>3. Direkt danach frisch gelesen: {searchParams.freshCount ?? "?"}</div>
+              <div>4. Beim Seiten-Render (diese Anzeige hier): {profile.tradingRules.length}</div>
             </div>
           )}
 
