@@ -42,10 +42,25 @@ export default async function SettingsPage({
       ? getMusicEmbedUrl(profile.musicProvider, profile.musicUrl)
       : null;
 
+  // Maximal-Diagnose: direkte, ungefilterte Abfrage mit vollständiger
+  // Fehlerausgabe, um auszuschließen, dass hier ein anderer Nutzer-Kontext
+  // oder ein stiller RLS-Fehler vorliegt.
+  const rawCheck = await supabase.from("profiles").select("*").eq("id", user.id);
+
   return (
     <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
       <div className="p-6 max-w-2xl space-y-6">
         <div className="text-xs uppercase tracking-wider text-ink-muted">Einstellungen</div>
+
+        {/* ROH-DIAGNOSE — vorübergehend, wird wieder entfernt sobald der Bug gefunden ist */}
+        <div className="rounded-panel border-2 border-yellow-500 bg-yellow-500/10 p-4 text-[11px] font-mono break-all space-y-1">
+          <div className="text-yellow-400 font-bold mb-2">🔍 ROH-DIAGNOSE (temporär)</div>
+          <div>user.id: {user.id}</div>
+          <div>rawCheck.error: {rawCheck.error ? JSON.stringify(rawCheck.error) : "kein Fehler"}</div>
+          <div>rawCheck.status: {rawCheck.status}</div>
+          <div>rawCheck.data (Anzahl Zeilen): {rawCheck.data?.length ?? "null"}</div>
+          <div>rawCheck.data (Inhalt): {JSON.stringify(rawCheck.data)}</div>
+        </div>
 
         {/* App installieren */}
         <div className="rounded-panel bg-panel-raised border border-panel-line p-5">
