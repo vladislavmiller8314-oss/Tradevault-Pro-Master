@@ -51,7 +51,7 @@ export default async function EditTradePage({
   const updateWithId = updateTrade.bind(null, trade.id);
 
   return (
-    <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
+    <AppShell userEmail={user.email} musicLinks={profile.musicLinks}>
       <div className="p-6 max-w-2xl">
         <div className="flex items-center justify-between mb-4">
           <div className="text-xs uppercase tracking-wider text-ink-muted">
@@ -266,6 +266,28 @@ export default async function EditTradePage({
               />
             </div>
 
+            {profile.strategies.length > 0 && (
+              <div key={(trade.strategy_tags ?? []).join("|")}>
+                <label className={labelClass}>Strategien (mehrere möglich)</label>
+                <div className="flex flex-wrap gap-2">
+                  {profile.strategies.map((s: string) => (
+                    <label key={s} className="cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="strategyTags"
+                        value={s}
+                        defaultChecked={(trade.strategy_tags ?? []).includes(s)}
+                        className="peer sr-only"
+                      />
+                      <span className="inline-block rounded-md border border-panel-line bg-panel-inset px-3 py-1.5 text-xs text-ink-muted peer-checked:border-gain/50 peer-checked:bg-gain/10 peer-checked:text-gain transition-colors">
+                        {s}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div>
               <label className={labelClass}>Emotion vor dem Trade</label>
               <div className="flex flex-wrap gap-2">
@@ -285,6 +307,14 @@ export default async function EditTradePage({
                   </label>
                 ))}
               </div>
+              <input
+                name="customPreTradeEmotion"
+                placeholder="Oder eigenes Gefühl eintragen …"
+                defaultValue={
+                  EMOTIONS.some((e) => e.value === trade.pre_trade_emotion) ? "" : trade.pre_trade_emotion ?? ""
+                }
+                className={`${inputClass} mt-2`}
+              />
             </div>
 
             <div>
@@ -306,6 +336,12 @@ export default async function EditTradePage({
                   </label>
                 ))}
               </div>
+              <input
+                name="customEmotion"
+                placeholder="Oder eigenes Gefühl eintragen …"
+                defaultValue={EMOTIONS.some((e) => e.value === trade.emotion) ? "" : trade.emotion ?? ""}
+                className={`${inputClass} mt-2`}
+              />
             </div>
 
             <div>

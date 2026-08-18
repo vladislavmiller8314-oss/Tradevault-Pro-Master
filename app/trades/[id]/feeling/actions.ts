@@ -13,7 +13,8 @@ export async function saveFeelingBefore(tradeId: string, formData: FormData) {
     redirect("/login");
   }
 
-  const preTradeEmotion = (formData.get("preTradeEmotion") as string) || null;
+  const customEmotion = ((formData.get("customPreTradeEmotion") as string) || "").trim().slice(0, 40);
+  const preTradeEmotion = customEmotion || (formData.get("preTradeEmotion") as string) || null;
 
   await supabase
     .from("trades")

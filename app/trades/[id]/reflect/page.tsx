@@ -5,8 +5,6 @@ import { fetchProfile } from "@/lib/supabase/queries";
 import { EMOTIONS, RULE_OPTIONS as RULES } from "@/lib/tradeTags";
 import { saveReflection, skipReflection } from "./actions";
 
-const STRATEGIES = ["ORB", "VWAP Reject", "Breakout", "Range", "Trend Continuation"];
-
 export default async function ReflectPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
   const {
@@ -19,7 +17,7 @@ export default async function ReflectPage({ params }: { params: { id: string } }
 
   const { data: trade } = await supabase
     .from("trades")
-    .select("id, instrument, direction, pnl, setup, emotion, rule_adherence")
+    .select("id, instrument, direction, pnl, setup, strategy_tags, emotion, rule_adherence")
     .eq("id", params.id)
     .eq("user_id", user.id)
     .single();
@@ -32,7 +30,7 @@ export default async function ReflectPage({ params }: { params: { id: string } }
   const profile = await fetchProfile(supabase, user.id);
 
   return (
-    <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
+    <AppShell userEmail={user.email} musicLinks={profile.musicLinks}>
       <div className="p-6 max-w-lg mx-auto">
         <div className="text-center mb-5">
           <div className="text-xs uppercase tracking-wider text-ink-muted mb-1">
@@ -73,6 +71,22 @@ export default async function ReflectPage({ params }: { params: { id: string } }
             </div>
           </div>
 
+          <div>
+            <label className="block text-xs text-ink-muted mb-1" htmlFor="customEmotion">
+              Oder eigenes Gefühl eintragen
+            </label>
+            <input
+              id="customEmotion"
+              name="customEmotion"
+              placeholder="z. B. Angespannt, Optimistisch …"
+              defaultValue={EMOTIONS.some((e) => e.value === trade.emotion) ? "" : trade.emotion ?? ""}
+              className="w-full rounded-md bg-panel-inset border border-panel-line px-3 py-2 text-sm text-ink outline-none focus:border-gain/50"
+            />
+            <p className="text-xs text-ink-faint mt-1">
+              Überschreibt die Auswahl oben, falls ausgefüllt.
+            </p>
+          </div>
+
           {/* Regeleinhaltung — ein Tap */}
           <div>
             <label className="block text-xs text-ink-muted mb-2">Regeln eingehalten?</label>
@@ -95,26 +109,27 @@ export default async function ReflectPage({ params }: { params: { id: string } }
             </div>
           </div>
 
-          {/* Strategie — ein Tap, mit Setup aus dem Trade vorbelegt */}
-          <div>
-            <label className="block text-xs text-ink-muted mb-2">Strategie / Setup</label>
-            <div className="flex flex-wrap gap-2">
-              {STRATEGIES.map((s) => (
-                <label key={s} className="cursor-pointer">
-                  <input
-                    type="radio"
-                    name="setup"
-                    value={s}
-                    defaultChecked={trade.setup === s}
-                    className="peer sr-only"
-                  />
-                  <span className="inline-block rounded-full border border-panel-line bg-panel-inset px-3 py-1.5 text-xs text-ink-muted peer-checked:border-gain/50 peer-checked:bg-gain/10 peer-checked:text-gain transition-colors">
-                    {s}
-                  </span>
-                </label>
-              ))}
+          {profile.strategies.length > 0 && (
+            <div key={(trade.strategy_tags ?? []).join("|")}>
+              <label className="block text-xs text-ink-muted mb-2">Strategie(n)</label>
+              <div className="flex flex-wrap gap-2">
+                {profile.strategies.map((s: string) => (
+                  <label key={s} className="cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="strategyTags"
+                      value={s}
+                      defaultChecked={(trade.strategy_tags ?? []).includes(s)}
+                      className="peer sr-only"
+                    />
+                    <span className="inline-block rounded-full border border-panel-line bg-panel-inset px-3 py-1.5 text-xs text-ink-muted peer-checked:border-gain/50 peer-checked:bg-gain/10 peer-checked:text-gain transition-colors">
+                      {s}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Ein Satz — schnell getippt, kein Roman */}
           <div>

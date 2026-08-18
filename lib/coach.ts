@@ -1,5 +1,5 @@
 import type { Trade } from "@/types/trade";
-import { groupBy, toStatsRows, weekdayLabel, hourBucketLabel, ruleLabel } from "@/lib/stats";
+import { groupBy, groupByMulti, toStatsRows, weekdayLabel, hourBucketLabel, ruleLabel } from "@/lib/stats";
 
 // Baut eine kompakte Text-Zusammenfassung aus aggregierten Kennzahlen —
 // keine einzelnen Trades, keine Kontostände, keine Screenshots. Nur
@@ -14,7 +14,9 @@ export function buildStatsSummary(trades: Trade[]): string {
   const profitFactor = grossLoss === 0 ? grossWin : grossWin / grossLoss;
 
   const byInstrument = toStatsRows(groupBy(trades, (t) => t.instrument)).slice(0, 6);
-  const bySetup = toStatsRows(groupBy(trades, (t) => t.setup || "Ohne Setup")).slice(0, 6);
+  const byStrategy = toStatsRows(
+    groupByMulti(trades, (t) => (t.strategyTags.length > 0 ? t.strategyTags : [t.setup || "Ohne Strategie"]))
+  ).slice(0, 6);
   const byWeekday = toStatsRows(groupBy(trades, (t) => weekdayLabel(new Date(t.closedAt))));
   const byHour = toStatsRows(groupBy(trades, (t) => hourBucketLabel(new Date(t.closedAt))));
   const byRule = toStatsRows(groupBy(trades, (t) => ruleLabel(t.ruleAdherence)));
@@ -35,7 +37,7 @@ export function buildStatsSummary(trades: Trade[]): string {
   return `
 Gesamt: ${trades.length} Trades, Winrate ${winrate}%, Profit Factor ${profitFactor.toFixed(2)}.
 Nach Instrument: ${fmtRows(byInstrument) || "keine Daten"}.
-Nach Setup: ${fmtRows(bySetup) || "keine Daten"}.
+Nach Strategie: ${fmtRows(byStrategy) || "keine Daten"}.
 Nach Richtung: ${fmtRows(byDirection) || "keine Daten"}.
 Nach Wochentag: ${fmtRows(byWeekday) || "keine Daten"}.
 Nach Uhrzeit: ${fmtRows(byHour) || "keine Daten"}.
@@ -127,12 +129,14 @@ export function generateHeuristicInsights(trades: Trade[]): CoachInsight[] {
     });
   }
 
-  // Bestes Setup
-  const bySetup = bestAndWorst(toStatsRows(groupBy(trades, (t) => t.setup || "Ohne Setup")));
-  if (bySetup) {
+  // Beste Strategie
+  const byStrategyHeuristic = bestAndWorst(
+    toStatsRows(groupByMulti(trades, (t) => (t.strategyTags.length > 0 ? t.strategyTags : [t.setup || "Ohne Strategie"])))
+  );
+  if (byStrategyHeuristic) {
     insights.push({
       type: "staerke",
-      text: `„${bySetup.best.name}" ist dein bisher stärkstes Setup: ${bySetup.best.winrate}% Winrate über ${bySetup.best.count} Trades.`,
+      text: `„${byStrategyHeuristic.best.name}" ist deine bisher stärkste Strategie: ${byStrategyHeuristic.best.winrate}% Winrate über ${byStrategyHeuristic.best.count} Trades.`,
     });
   }
 

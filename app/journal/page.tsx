@@ -25,7 +25,7 @@ export default async function JournalPage({
   ]);
 
   return (
-    <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
+    <AppShell userEmail={user.email} musicLinks={profile.musicLinks}>
       <div className="p-6">
         <div className="flex items-center justify-between mb-3">
           <div className="text-xs uppercase tracking-wider text-ink-muted">Trade Journal</div>

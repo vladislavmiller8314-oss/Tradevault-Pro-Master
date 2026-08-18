@@ -23,6 +23,7 @@ export interface Trade {
   fees: number;
   pnl: number;
   setup: string;
+  strategyTags: string[];
   emotion: string;
   ruleAdherence?: "eingehalten" | "teilweise" | "gebrochen";
   improvementNote?: string;

@@ -54,7 +54,7 @@ export default async function CoachPage({
   const isStale = latest && latest.trade_count !== trades.length;
 
   return (
-    <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
+    <AppShell userEmail={user.email} musicLinks={profile.musicLinks}>
       <div className="p-6 max-w-2xl">
         <div className="text-xs uppercase tracking-wider text-ink-muted mb-1">✦ Coach</div>
         <p className="text-sm text-ink-muted mb-4">

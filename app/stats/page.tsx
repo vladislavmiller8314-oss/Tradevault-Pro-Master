@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { fetchAccountsWithBalances, fetchProfile, fetchTrades } from "@/lib/supabase/queries";
 import {
   groupBy,
+  groupByMulti,
   toStatsRows,
   orderRowsByFixedSequence,
   weekdayLabel,
@@ -33,7 +34,7 @@ export default async function StatsPage() {
     fetchProfile(supabase, user.id),
   ]);
 
-  const shellProps = { userEmail: user.email, musicProvider: profile.musicProvider, musicUrl: profile.musicUrl };
+  const shellProps = { userEmail: user.email, musicLinks: profile.musicLinks };
 
   if (trades.length === 0) {
     return (
@@ -59,7 +60,9 @@ export default async function StatsPage() {
   const accountNames = Object.fromEntries(accounts.map((a) => [a.id, a.name]));
 
   const byInstrument = toStatsRows(groupBy(trades, (t) => t.instrument));
-  const bySetup = toStatsRows(groupBy(trades, (t) => t.setup || "Ohne Setup"));
+  const byStrategy = toStatsRows(
+    groupByMulti(trades, (t) => (t.strategyTags.length > 0 ? t.strategyTags : [t.setup || "Ohne Strategie"]))
+  );
   const byAccount = toStatsRows(
     groupBy(trades, (t) => accountNames[t.accountId] || "Unbekanntes Konto")
   );
@@ -77,6 +80,9 @@ export default async function StatsPage() {
     RULE_ORDER
   );
   const byEmotion = toStatsRows(groupBy(trades, (t) => t.emotion || "Nicht angegeben"));
+  const byEmotionBefore = toStatsRows(
+    groupBy(trades, (t) => t.preTradeEmotion || "Nicht angegeben")
+  );
 
   return (
     <AppShell {...shellProps}>
@@ -87,7 +93,12 @@ export default async function StatsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <StatsTable title="Nach Instrument" rows={byInstrument} firstCol="Instrument" />
-          <StatsTable title="Nach Setup" rows={bySetup} firstCol="Setup" />
+          <StatsTable
+            title="Nach Strategie"
+            rows={byStrategy}
+            firstCol="Strategie"
+            note="Trades mit mehreren Strategien zählen bei jeder mit"
+          />
         </div>
 
         <StatsTable title="Nach Konto" rows={byAccount} firstCol="Konto" />
@@ -99,7 +110,11 @@ export default async function StatsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <StatsBarList title="Nach Regeleinhaltung" rows={byRule} />
-          <StatsBarList title="Nach Emotion" rows={byEmotion} />
+          <StatsBarList title="Nach Emotion (nachher)" rows={byEmotion} />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <StatsBarList title="Nach Emotion (vorher)" rows={byEmotionBefore} />
         </div>
       </div>
     </AppShell>

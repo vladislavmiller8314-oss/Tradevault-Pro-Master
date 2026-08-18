@@ -29,7 +29,7 @@ export default async function AccountsPage({
   const totalBalance = active.reduce((sum, a) => sum + a.balance, 0);
 
   return (
-    <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
+    <AppShell userEmail={user.email} musicLinks={profile.musicLinks}>
       <div className="p-6 space-y-6 max-w-2xl">
         {active.length > 0 && (
           <div className="rounded-panel bg-panel-raised border border-panel-line p-4">

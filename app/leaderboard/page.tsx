@@ -10,6 +10,7 @@ interface LeaderboardRow {
   trade_count: number;
   winrate: number;
   profit_factor: number | null;
+  rule_adherence_pct: number | null;
   is_me: boolean;
 }
 
@@ -31,7 +32,7 @@ export default async function LeaderboardPage() {
   const leaderboard = (rows ?? []) as LeaderboardRow[];
 
   return (
-    <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
+    <AppShell userEmail={user.email} musicLinks={profile.musicLinks}>
       <div className="p-6 max-w-2xl">
         <div className="flex items-center justify-between mb-1">
           <div className="text-xs uppercase tracking-wider text-ink-muted">Rangliste</div>
@@ -41,7 +42,9 @@ export default async function LeaderboardPage() {
         </div>
         <p className="text-sm text-ink-muted mb-4">
           Anonymisiert, opt-in — sortiert nach Profit Factor. Mindestens 3
-          Trades nötig, um in der Liste zu erscheinen.
+          Trades nötig, um in der Liste zu erscheinen. „Regeltreue" zeigt
+          den Anteil eingehaltener Regeln der letzten 20 Tage — unabhängig
+          vom Zeitraum der übrigen Werte.
         </p>
 
         {error && (
@@ -76,6 +79,7 @@ export default async function LeaderboardPage() {
                   <th className="px-4 py-3 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Trades</th>
                   <th className="px-4 py-3 font-medium">Winrate</th>
+                  <th className="px-4 py-3 font-medium">Regeltreue (20 Tage)</th>
                   <th className="px-4 py-3 font-medium text-right">Profit Factor</th>
                 </tr>
               </thead>
@@ -95,6 +99,9 @@ export default async function LeaderboardPage() {
                     </td>
                     <td className="tabular px-4 py-3">{row.trade_count}</td>
                     <td className="tabular px-4 py-3">{row.winrate}%</td>
+                    <td className="tabular px-4 py-3">
+                      {row.rule_adherence_pct != null ? `${row.rule_adherence_pct}%` : "—"}
+                    </td>
                     <td className="tabular px-4 py-3 text-right font-semibold">
                       {row.profit_factor !== null ? row.profit_factor.toFixed(2) : "—"}
                     </td>

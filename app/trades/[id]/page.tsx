@@ -36,7 +36,7 @@ export default async function TradeDetailPage({ params }: { params: { id: string
     });
 
   return (
-    <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
+    <AppShell userEmail={user.email} musicLinks={profile.musicLinks}>
       <div className="p-6 max-w-3xl space-y-4">
         <div className="flex items-center justify-between">
           <Link href="/replay" className="text-xs text-ink-muted hover:text-ink">

@@ -20,6 +20,7 @@ function mapTrade(row: any): Trade {
     fees: Number(row.fees),
     pnl: Number(row.pnl),
     setup: row.setup ?? "",
+    strategyTags: row.strategy_tags ?? [],
     emotion: row.emotion ?? "",
     ruleAdherence: row.rule_adherence ?? undefined,
     improvementNote: row.improvement_note ?? undefined,
@@ -159,27 +160,45 @@ export async function fetchEquityCurve(
   return points;
 }
 
+export interface MusicLink {
+  id: string;
+  provider: MusicProvider;
+  url: string;
+  label: string | null;
+}
+
 export interface Profile {
   activeWidgets: string[];
   musicProvider: MusicProvider;
   musicUrl: string | null;
+  musicLinks: MusicLink[];
   leaderboardOptIn: boolean;
   leaderboardDisplayName: string | null;
   tradingRules: string[];
+  strategies: string[];
 }
 
 // Liefert immer nutzbare Defaults, auch falls die Trigger-basierte
 // Profil-Erstellung (siehe schema.sql) noch nicht gegriffen hat.
 export async function fetchProfile(supabase: SupabaseClient, userId: string): Promise<Profile> {
   noStore();
-  const { data } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+  const [{ data }, { data: musicLinksData }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+    supabase
+      .from("music_links")
+      .select("id, provider, url, label")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true }),
+  ]);
 
   return {
     activeWidgets: data?.active_widgets ?? DEFAULT_ACTIVE_WIDGETS,
     musicProvider: (data?.music_provider as MusicProvider) ?? "none",
     musicUrl: data?.music_url ?? null,
+    musicLinks: (musicLinksData as MusicLink[] | null) ?? [],
     leaderboardOptIn: data?.leaderboard_opt_in ?? false,
     leaderboardDisplayName: data?.leaderboard_display_name ?? null,
     tradingRules: data?.trading_rules ?? [],
+    strategies: data?.strategies ?? [],
   };
 }

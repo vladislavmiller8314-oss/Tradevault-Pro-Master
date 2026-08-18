@@ -34,7 +34,7 @@ export default async function NewTradePage({
   ]);
 
   return (
-    <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
+    <AppShell userEmail={user.email} musicLinks={profile.musicLinks}>
       <div className="p-6 max-w-2xl">
         <div className="flex items-center justify-between mb-4">
           <div className="text-xs uppercase tracking-wider text-ink-muted">
@@ -202,11 +202,31 @@ export default async function NewTradePage({
                   placeholder="z. B. ORB, VWAP Reject"
                   className={inputClass}
                 />
-                <p className="text-xs text-ink-faint mt-1">
-                  Emotion und Regeleinhaltung fragen wir dich gleich nach dem
-                  Speichern in 15 Sekunden ab.
-                </p>
               </div>
+
+              {profile.strategies.length > 0 && (
+                <div>
+                  <label className={labelClass}>Strategien (mehrere möglich)</label>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.strategies.map((s) => (
+                      <label key={s} className="cursor-pointer">
+                        <input type="checkbox" name="strategyTags" value={s} className="peer sr-only" />
+                        <span className="inline-block rounded-md border border-panel-line bg-panel-inset px-3 py-1.5 text-xs text-ink-muted peer-checked:border-gain/50 peer-checked:bg-gain/10 peer-checked:text-gain transition-colors">
+                          {s}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-ink-faint mt-1">
+                    Neue Strategien trägst du unter Einstellungen ein.
+                  </p>
+                </div>
+              )}
+
+              <p className="text-xs text-ink-faint">
+                Emotion und Regeleinhaltung fragen wir dich gleich nach dem
+                Speichern in 15 Sekunden ab.
+              </p>
 
               <div>
                 <label className={labelClass} htmlFor="screenshot">

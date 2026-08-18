@@ -379,7 +379,130 @@ Varianten. Neue Tabelle `coach_insights` — bei bestehenden Datenbanken
   Advanced-Charts-Bibliothek. Die Referenz-Leiste ist der praktikable
   Ersatz dafür.
 
-## 15. Nächste Schritte (Priorität)
+## 15. Musik: mehrere Links statt nur einem
+
+Kompletter Umbau von "ein Link pro Nutzer" auf eine eigene Tabelle
+`music_links` (id, user_id, provider, url, label, created_at) mit
+eigener RLS-Policy. Bestehende einzelne Links aus dem alten
+`profiles.music_url`-Feld werden bei der Migration automatisch
+übernommen, nichts geht verloren.
+
+- **Einstellungen:** Liste aller gespeicherten Links mit Entfernen-
+  Button, darunter ein Formular zum Hinzufügen (Anbieter, Link,
+  optionaler eigener Name wie „Fokus-Playlist").
+- **Musik-Button (`components/MusicButton.tsx`):** zeigt bei mehreren
+  Links jetzt zuerst eine Auswahlliste, Klick auf einen Eintrag öffnet
+  den Player dafür, mit „Zurück"-Link zur Liste.
+- **`AppShell` nimmt jetzt `musicLinks` statt `musicProvider`/`musicUrl`
+  entgegen** — alle ~15 Seiten, die `AppShell` rendern, wurden
+  entsprechend angepasst.
+- **Nebenbei behoben:** `coach_insights` hatte eine RLS-Policy, aber Row
+  Level Security war nie für die Tabelle eingeschaltet — die Policy griff
+  dadurch überhaupt nicht. In `schema.sql` und der Migration nachgezogen.
+
+Neue Tabelle `music_links` — bei bestehenden Datenbanken über
+`supabase/migration_music_links.sql` nachziehen (übernimmt auch den
+RLS-Fix für `coach_insights` und deinen bisherigen einzelnen Musik-Link).
+
+## 16. Rangliste: Regeltreue der letzten 20 Tage
+
+Neue Spalte „Regeltreue (20 Tage)" — Anteil der Trades mit
+`rule_adherence = 'eingehalten'` unter allen bewerteten Trades der
+letzten 20 Tage. Bewusst getrennt vom Zeitraum der übrigen Spalten
+(Winrate/Profit Factor bleiben all-time) — zeigt "hältst du dich GERADE
+an deine Regeln", nicht den Durchschnitt seit jeher. Trades ohne
+Regel-Bewertung (z. B. reine CSV-Importe ohne nachgetragene Reflexion)
+fließen nicht in den Nenner ein. `—` erscheint, wenn in den letzten 20
+Tagen keine bewerteten Trades vorliegen.
+
+`get_leaderboard()` in `schema.sql` entsprechend erweitert. Da sich die
+Rückgabespalten einer Postgres-Funktion nicht per `CREATE OR REPLACE`
+ändern lassen, muss die Migration die Funktion erst löschen und neu
+anlegen — bei bestehenden Datenbanken über
+`supabase/migration_leaderboard_rules.sql` nachziehen.
+
+## 17. Profit-Kalender + Strategie-Liste
+
+**Profit-Kalender (`/calendar`, neuer Nav-Eintrag):** Monatsraster,
+jeder Tag zeigt die Summe aller an dem Tag geschlossenen Trades, grün
+für Gewinn/rot für Verlust eingefärbt, Intensität proportional zur
+Höhe relativ zum stärksten Tag im sichtbaren Monat. Kopfbereich mit
+Monats-P&L und Anzahl Handelstage, Vor-/Zurück-Navigation über
+`?year=&month=` in der URL. Kein neuer DB-Zugriff nötig — nutzt die
+schon vorhandenen Trades, lokal nach Kalendertag gruppiert (server-
+seitig, gleiche Zeitzonen-Konvention wie der Rest der App).
+
+**Strategie-Liste (`components/StrategyListWidget.tsx`):** exakt nach
+dem Muster von „Mein Regelwerk" — eigene Trading-Setups frei eintragen
+(eine Zeile = ein Setup), erscheint als eigenes Dashboard-Widget direkt
+unter dem Regelwerk. Neue Spalte `strategies text[]` in `profiles`
+(gleiche Struktur wie `trading_rules`), neuer Widget-Katalog-Eintrag
+`strategies`, neue Server Action `saveStrategies` in
+`app/settings/actions.ts`.
+
+Bei bestehenden Datenbanken über `supabase/migration_strategies.sql`
+nachziehen (legt die Spalte an und aktiviert das Widget automatisch
+auch für bereits bestehende Nutzer-Profile).
+
+## 18. Strategie-Auswertung in der Statistik (mehrere Strategien pro Trade)
+
+Bisher hatte jeder Trade nur ein einzelnes "Setup"-Textfeld. Jetzt lässt
+sich beim Erfassen und Bearbeiten eines Trades **mehr als eine
+Strategie gleichzeitig** anhaken (aus der unter „Einstellungen"
+gepflegten Strategie-Liste, siehe Abschnitt 17) — z. B. ein Trade, der
+sowohl „ORB" als auch „VWAP Reject" kombiniert.
+
+- Neue Spalte `strategy_tags text[]` in `trades` (zusätzlich zum alten
+  `setup`-Textfeld, das für CSV-Importe und freie Notizen weiter
+  existiert).
+- Neue Funktion `groupByMulti()` in `lib/stats.ts`: anders als das
+  bisherige `groupBy()` (ein Trade gehört zu genau einer Gruppe) kann
+  ein Trade hier zu **mehreren Gruppen gleichzeitig** gehören und
+  zählt dann in jeder betroffenen Strategie voll mit — mit Testdaten
+  durchgerechnet und bestätigt (ein Trade mit 2 Tags erscheint korrekt
+  in beiden Gruppen-Summen).
+- Statistik-Seite: „Nach Setup" wurde zu „Nach Strategie", mit Hinweis
+  „Trades mit mehreren Strategien zählen bei jeder mit". Trades ohne
+  Tags fallen auf das alte `setup`-Feld zurück (oder „Ohne Strategie"),
+  damit nichts aus der Auswertung verschwindet.
+- Der kostenlose Coach (`lib/coach.ts`) nutzt dieselbe Mehrfach-Logik,
+  damit seine Analyse konsistent zur Statistik-Seite bleibt.
+
+Bei bestehenden Datenbanken über `supabase/migration_strategy_tags.sql`
+nachziehen.
+
+## 19. Erweiterte Emotionen + eigene Gefühle + Statistik dazu
+
+- **`lib/tradeTags.ts`:** von 13 auf 23 Emotionen erweitert (neu z. B.
+  Euphorisch, Frustriert, Hoffnungsvoll, Fokussiert, Panisch, Stolz).
+- **Eigenes Gefühl als Freitext:** auf allen drei Stellen, wo Emotion
+  erfasst wird (Vorher-Screen, Reflexions-Screen, Bearbeiten-Formular
+  für beide Emotionen) gibt es jetzt zusätzlich ein Textfeld „Oder
+  eigenes Gefühl eintragen" — überschreibt die Emoji-Auswahl, falls
+  ausgefüllt. Bereits gespeicherte eigene Begriffe werden beim
+  Bearbeiten korrekt im Textfeld vorbelegt (nicht in der Emoji-Liste
+  „verloren"), erkannt über `EMOTIONS.some(e => e.value === ...)`.
+- **Statistik-Seite:** neue Sektion „Nach Emotion (vorher)" neben der
+  bisherigen „Nach Emotion (nachher)" — vorher gab es nur die
+  Nachher-Auswertung. Da `emotion`/`preTradeEmotion` immer schon reiner
+  Freitext in der Datenbank waren, funktioniert die Gruppierung
+  automatisch auch mit selbst eingetragenen Begriffen, ganz ohne
+  Sonderbehandlung.
+- **Nebenbei gefunden und mitbehoben:** Die Reflexions-Seite
+  (`/trades/[id]/reflect`) hatte noch eine alte, fest einprogrammierte
+  Strategie-Liste ("ORB", "VWAP Reject" usw. auf Englisch/generisch),
+  komplett losgelöst von den echten, selbst gepflegten Strategien aus
+  Abschnitt 17/18. Jetzt nutzt sie dieselbe Mehrfachauswahl aus
+  `profile.strategies` wie das Erfassen-/Bearbeiten-Formular, schreibt
+  in dieselbe `strategy_tags`-Spalte. Dabei auch einen Bug vermieden:
+  die alte Version hätte das freie `setup`-Textfeld bei jeder Reflexion
+  auf leer überschrieben — das Feld wird beim Reflektieren jetzt gar
+  nicht mehr angefasst.
+
+Keine neue Migration nötig — nutzt ausschließlich bereits vorhandene
+Spalten (`emotion`, `pre_trade_emotion`, `strategy_tags`).
+
+## 20. Nächste Schritte (Priorität)
 
 1. ~~Supabase-Projekt anlegen, `supabase/schema.sql` ausführen~~
 2. ~~Auth (E-Mail/Passwort) über Supabase Auth verdrahten~~ — erledigt

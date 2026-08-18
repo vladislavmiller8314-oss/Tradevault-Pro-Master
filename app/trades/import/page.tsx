@@ -34,7 +34,7 @@ export default async function ImportTradesPage({
   ]);
 
   return (
-    <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
+    <AppShell userEmail={user.email} musicLinks={profile.musicLinks}>
       <div className="p-6 max-w-2xl">
         <div className="flex items-center justify-between mb-4">
           <div className="text-xs uppercase tracking-wider text-ink-muted">CSV-Import</div>

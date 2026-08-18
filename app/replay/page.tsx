@@ -22,7 +22,7 @@ export default async function ReplayPage() {
     fetchProfile(supabase, user.id),
   ]);
 
-  const shellProps = { userEmail: user.email, musicProvider: profile.musicProvider, musicUrl: profile.musicUrl };
+  const shellProps = { userEmail: user.email, musicLinks: profile.musicLinks };
 
   if (trades.length === 0) {
     return (

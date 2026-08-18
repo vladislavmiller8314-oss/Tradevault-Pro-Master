@@ -31,7 +31,7 @@ export default async function FeelingBeforePage({ params }: { params: { id: stri
   const skipWithId = skipFeelingBefore.bind(null, trade.id);
 
   return (
-    <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
+    <AppShell userEmail={user.email} musicLinks={profile.musicLinks}>
       <div className="p-6 max-w-lg mx-auto">
         <div className="text-center mb-5">
           <div className="text-xs uppercase tracking-wider text-ink-muted mb-1">
@@ -59,6 +59,21 @@ export default async function FeelingBeforePage({ params }: { params: { id: stri
                 </label>
               ))}
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs text-ink-muted mb-1" htmlFor="customPreTradeEmotion">
+              Oder eigenes Gefühl eintragen
+            </label>
+            <input
+              id="customPreTradeEmotion"
+              name="customPreTradeEmotion"
+              placeholder="z. B. Angespannt, Optimistisch …"
+              className="w-full rounded-md bg-panel-inset border border-panel-line px-3 py-2 text-sm text-ink outline-none focus:border-gain/50"
+            />
+            <p className="text-xs text-ink-faint mt-1">
+              Überschreibt die Auswahl oben, falls ausgefüllt.
+            </p>
           </div>
 
           <div className="flex gap-3 pt-1">

@@ -25,6 +25,7 @@ export async function createTrade(formData: FormData) {
   // Abschnitt 2, solange keine feste Instrument-Referenztabelle existiert.
   const pointValue = parseFloat(formData.get("pointValue") as string) || 1;
   const setup = (formData.get("setup") as string) || null;
+  const strategyTags = formData.getAll("strategyTags") as string[];
   const notes = (formData.get("notes") as string) || null;
   const openedAt = formData.get("openedAt") as string;
 
@@ -81,6 +82,7 @@ export async function createTrade(formData: FormData) {
       fees: legFees,
       pnl,
       setup,
+      strategy_tags: strategyTags,
       notes,
       screenshot_url: screenshotUrl,
       opened_at: new Date(openedAt).toISOString(),

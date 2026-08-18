@@ -14,7 +14,7 @@ const SECTIONS = [
   },
   {
     title: "Post-Trade-Reflexion",
-    text: "Direkt nach dem Speichern eines Trades: Emotion per Emoji, Regeleinhaltung (Eingehalten/Teilweise/Gebrochen) und ein kurzer Verbesserungssatz — alles per Tap in ca. 15 Sekunden, kann übersprungen werden.",
+    text: "Direkt nach dem Speichern eines Trades: Emotion per Emoji (23 zur Auswahl, oder eigenes Gefühl als Freitext eintragen), Regeleinhaltung (Eingehalten/Teilweise/Gebrochen), Strategie-Tags und ein kurzer Verbesserungssatz — alles per Tap in ca. 15 Sekunden, kann übersprungen werden.",
   },
   {
     title: "Journal",
@@ -26,11 +26,15 @@ const SECTIONS = [
   },
   {
     title: "Statistiken",
-    text: "Auswertung nach Instrument, Setup und Konto (Tabellen mit Trades/Winrate/Ø P&L/Gesamt-P&L) sowie nach Wochentag, Uhrzeit, Regeleinhaltung und Emotion (Balkenlisten) — hilft, Muster in deinem Trading zu erkennen.",
+    text: "Auswertung nach Instrument, Strategie und Konto (Tabellen mit Trades/Winrate/Ø P&L/Gesamt-P&L) sowie nach Wochentag, Uhrzeit, Regeleinhaltung und Emotion vorher/nachher getrennt (Balkenlisten) — hilft, Muster in deinem Trading zu erkennen.",
   },
   {
     title: "Konten",
     text: "Lege beliebig viele Konten an (Prop, Live, Demo, Evaluation) mit Startkapital, Währung und Broker. Jeder Trade muss einem Konto zugeordnet sein. Zeigt außerdem eine Guthabenübersicht mit dem echten Live-Stand je Konto (Startkapital + P&L), nicht nur dem unveränderten Startwert.",
+  },
+  {
+    title: "Kalender",
+    text: "Profit-Kalender: zeigt pro Tag auf einen Blick, wie viel Gewinn oder Verlust du gemacht hast — grün eingefärbt für Gewinn, rot für Verlust, Intensität je nach Höhe. Monats-Summe und Anzahl Handelstage oben, mit Vor-/Zurück-Navigation zwischen Monaten.",
   },
   {
     title: "Coach",
@@ -42,7 +46,7 @@ const SECTIONS = [
   },
   {
     title: "Einstellungen",
-    text: "Dashboard-Widgets einzeln an- oder abschalten, darunter auch „Mein Regelwerk“ — trag dort deine persönlichen Trading-Regeln ein (eine pro Zeile), sie erscheinen dann als Checkliste auf dem Dashboard. Musik-Integration: Spotify-, Apple-Music-, YouTube-Music- oder SoundCloud-Link einfügen — erscheint danach als Player über den Musik-Button (🎵) oben rechts, ohne dass ein Konto verknüpft wird.",
+    text: "Dashboard-Widgets einzeln an- oder abschalten, darunter auch „Mein Regelwerk“ und „Meine Strategien“ — trag dort deine persönlichen Trading-Regeln bzw. Setups ein (eine pro Zeile), sie erscheinen dann als Checkliste auf dem Dashboard. Musik-Integration: beliebig viele Spotify-, Apple-Music-, YouTube-Music- oder SoundCloud-Links hinterlegen — erscheinen als Auswahlliste über den Musik-Button (🎵) oben rechts, ohne dass ein Konto verknüpft wird.",
   },
   {
     title: "App installieren",
@@ -63,7 +67,7 @@ export default async function HelpPage() {
   const profile = await fetchProfile(supabase, user.id);
 
   return (
-    <AppShell userEmail={user.email} musicProvider={profile.musicProvider} musicUrl={profile.musicUrl}>
+    <AppShell userEmail={user.email} musicLinks={profile.musicLinks}>
       <div className="p-6 max-w-2xl">
         <div className="text-xs uppercase tracking-wider text-ink-muted mb-1">Handbuch</div>
         <p className="text-sm text-ink-muted mb-6">

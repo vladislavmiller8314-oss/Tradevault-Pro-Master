@@ -103,9 +103,9 @@ Jeder Push auf den Hauptbranch deployt automatisch neu.
 - Sidebar-Layout (`components/Sidebar.tsx` + `AppShell.tsx`) auf allen
   Seiten, mit aktiver Routen-Markierung und Abmelden
 - Frei an-/abschaltbare Dashboard-Widgets (`/settings`)
-- Musik-Button (🎵) in der Kopfzeile: Spotify-/Apple-Music-/YouTube-Music-/
-  SoundCloud-Link einfügen, erscheint als eingebetteter Player — kein
-  Login bei den Anbietern nötig
+- Musik-Button (🎵) in der Kopfzeile: beliebig viele Spotify-/Apple-
+  Music-/YouTube-Music-/SoundCloud-Links hinterlegen, Auswahlliste zum
+  Durchklicken — kein Login bei den Anbietern nötig
 - Handbuch (`/help`): kurze Beschreibung jeder Funktion, erreichbar über
   den Link unten in der Sidebar
 - Mobile Bottom-Nav (`components/MobileBottomNav.tsx`): unter 768px
@@ -133,6 +133,7 @@ Jeder Push auf den Hauptbranch deployt automatisch neu.
   über alle aktiven Konten
 - Rangliste (`/leaderboard`, opt-in): Winrate & Profit Factor anonymisiert
   mit anderen Nutzern vergleichen, nie echte Beträge oder einzelne Trades
+  — plus Regeltreue der letzten 20 Tage in %
 - Mehrfachauswahl im Journal: einzelne Trades per Checkbox auswählen
   (oder alle auf einmal) und gesammelt löschen, mit Bestätigungsdialog
 - Coach (`/coach`): kostenlose, regelbasierte Musteranalyse deiner
@@ -143,6 +144,15 @@ Jeder Push auf den Hauptbranch deployt automatisch neu.
   Bearbeiten-Formular änderbar (per Emoji-Auswahl, 13 Emotionen zur Wahl)
 - Widget „Mein Regelwerk": persönliche Trading-Regeln unter
   Einstellungen eintragen, erscheinen als Checkliste auf dem Dashboard
+- Widget „Meine Strategien": eigene Trading-Setups eintragen, direkt
+  unter dem Regelwerk auf dem Dashboard
+- Profit-Kalender (`/calendar`): Monatsraster mit Tages-P&L auf einen
+  Blick, grün/rot eingefärbt, mit Monats-Summe und Handelstage-Zähler
+- Statistik „Nach Strategie": mehrere Strategien pro Trade gleichzeitig
+  taggen, zählen dann bei jeder Strategie voll in der Auswertung mit
+- 23 statt 13 Emotionen zur Auswahl, plus Freitextfeld für eigene
+  Gefühle überall wo Emotion erfasst wird — inkl. eigener
+  Statistik-Auswertung „Nach Emotion (vorher)"
 - "Trades heute"/Winrate/Profit-Factor-Bug auf dem Dashboard behoben
   (wurden bisher fälschlich nur aus den letzten 5 Trades berechnet)
 - Trade-Detailseite: Trades in Replay/Hall of Fame/Shame anklickbar,

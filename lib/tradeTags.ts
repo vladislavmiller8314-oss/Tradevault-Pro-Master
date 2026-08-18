@@ -20,6 +20,16 @@ export const EMOTIONS: EmotionOption[] = [
   { value: "Gier", emoji: "🤑" },
   { value: "FOMO", emoji: "🏃" },
   { value: "Rache", emoji: "😡" },
+  { value: "Euphorisch", emoji: "🤩" },
+  { value: "Frustriert", emoji: "😖" },
+  { value: "Hoffnungsvoll", emoji: "🤞" },
+  { value: "Erleichtert", emoji: "😅" },
+  { value: "Enttäuscht", emoji: "😞" },
+  { value: "Fokussiert", emoji: "🎯" },
+  { value: "Übermütig", emoji: "😎" },
+  { value: "Gelangweilt", emoji: "🥱" },
+  { value: "Panisch", emoji: "😱" },
+  { value: "Stolz", emoji: "🙌" },
 ];
 
 export interface RuleOption {

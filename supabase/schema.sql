@@ -20,6 +20,7 @@ create table profiles (
   leaderboard_opt_in boolean not null default false,
   leaderboard_display_name text,          -- öffentlicher Anzeigename, falls opt-in (nie die echte E-Mail)
   trading_rules text[] not null default array[]::text[],  -- persönliches Regelwerk, frei editierbar
+  strategies text[] not null default array[]::text[],     -- eigene Strategie-Liste, frei editierbar
   created_at timestamptz not null default now()
 );
 
@@ -72,7 +73,8 @@ create table trades (
   target_price numeric(14,5),
   fees numeric(10,2) not null default 0,
   pnl numeric(14,2) not null,             -- serverseitig berechnet oder eingetragen
-  setup text,                             -- z.B. "ORB", "VWAP Reject"
+  setup text,                             -- z.B. "ORB", "VWAP Reject" (freier Text, Altfeld)
+  strategy_tags text[] not null default array[]::text[], -- mehrere eigene Strategien gleichzeitig zuordenbar
   emotion text,                           -- z.B. "Diszipliniert", "FOMO", "Rache"
   rule_adherence text check (rule_adherence in ('eingehalten','teilweise','gebrochen')),
   improvement_note text,                  -- kurze Notiz: "nächstes Mal besser machen"
@@ -132,6 +134,20 @@ create table coach_insights (
 create index coach_insights_user_idx on coach_insights (user_id, created_at desc);
 
 -- ---------------------------------------------------------------------
+-- Musik: mehrere Links pro Nutzer (statt nur einem)
+-- ---------------------------------------------------------------------
+create table music_links (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  provider text not null check (provider in ('spotify','apple_music','youtube_music','soundcloud')),
+  url text not null,
+  label text,                      -- optionaler eigener Name, z.B. "Fokus-Playlist"
+  created_at timestamptz not null default now()
+);
+
+create index music_links_user_idx on music_links (user_id, created_at);
+
+-- ---------------------------------------------------------------------
 -- Row Level Security
 -- ---------------------------------------------------------------------
 alter table profiles enable row level security;
@@ -139,6 +155,8 @@ alter table accounts enable row level security;
 alter table trades enable row level security;
 alter table equity_snapshots enable row level security;
 alter table trade_highlights enable row level security;
+alter table coach_insights enable row level security;
+alter table music_links enable row level security;
 
 create policy "profiles: eigene Zeile" on profiles
   for all using (auth.uid() = id) with check (auth.uid() = id);
@@ -156,6 +174,9 @@ create policy "trade_highlights: eigene Highlights" on trade_highlights
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create policy "coach_insights: eigene Analysen" on coach_insights
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "music_links: eigene Links" on music_links
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------
@@ -199,6 +220,7 @@ returns table (
   trade_count bigint,
   winrate numeric,
   profit_factor numeric,
+  rule_adherence_pct numeric,
   is_me boolean
 )
 security definer
@@ -218,6 +240,24 @@ as $$
         )
       else null
     end as profit_factor,
+    -- Regeltreue bezieht sich NUR auf die letzten 20 Tage, unabhängig
+    -- vom Zeitraum der übrigen Kennzahlen oben — zeigt "hältst du dich
+    -- GERADE an deine Regeln", nicht den Durchschnitt seit jeher.
+    case
+      when count(*) filter (
+        where t.rule_adherence is not null and t.closed_at >= now() - interval '20 days'
+      ) > 0
+        then round(
+          100.0 * count(*) filter (
+            where t.rule_adherence = 'eingehalten' and t.closed_at >= now() - interval '20 days'
+          )
+          / count(*) filter (
+            where t.rule_adherence is not null and t.closed_at >= now() - interval '20 days'
+          ),
+          1
+        )
+      else null
+    end as rule_adherence_pct,
     (p.id = auth.uid()) as is_me
   from public.profiles p
   join public.trades t on t.user_id = p.id

@@ -25,8 +25,11 @@ export async function updateTrade(tradeId: string, formData: FormData) {
   const fees = parseFloat(formData.get("fees") as string) || 0;
   const pointValue = parseFloat(formData.get("pointValue") as string) || 1;
   const setup = (formData.get("setup") as string) || null;
-  const preTradeEmotion = (formData.get("preTradeEmotion") as string) || null;
-  const emotion = (formData.get("emotion") as string) || null;
+  const strategyTags = formData.getAll("strategyTags") as string[];
+  const customPreTradeEmotion = ((formData.get("customPreTradeEmotion") as string) || "").trim().slice(0, 40);
+  const preTradeEmotion = customPreTradeEmotion || (formData.get("preTradeEmotion") as string) || null;
+  const customEmotion = ((formData.get("customEmotion") as string) || "").trim().slice(0, 40);
+  const emotion = customEmotion || (formData.get("emotion") as string) || null;
   const ruleAdherence = (formData.get("ruleAdherence") as string) || null;
   const improvementNote = (formData.get("improvementNote") as string) || null;
   const notes = (formData.get("notes") as string) || null;
@@ -69,6 +72,7 @@ export async function updateTrade(tradeId: string, formData: FormData) {
     fees,
     pnl,
     setup,
+    strategy_tags: strategyTags,
     pre_trade_emotion: preTradeEmotion,
     emotion,
     rule_adherence: ruleAdherence,

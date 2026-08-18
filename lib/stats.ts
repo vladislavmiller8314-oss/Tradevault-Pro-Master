@@ -16,6 +16,19 @@ export function groupBy<T>(items: T[], keyFn: (item: T) => string): Record<strin
   }, {} as Record<string, T[]>);
 }
 
+// Wie groupBy, aber ein Element kann zu mehreren Gruppen GLEICHZEITIG
+// gehören (z.B. ein Trade mit mehreren Strategien-Tags) — zählt dann
+// voll in jeder betroffenen Gruppe mit, statt aufgeteilt zu werden.
+export function groupByMulti<T>(items: T[], tagsFn: (item: T) => string[]): Record<string, T[]> {
+  return items.reduce((acc, item) => {
+    const tags = tagsFn(item);
+    tags.forEach((tag) => {
+      (acc[tag] ??= []).push(item);
+    });
+    return acc;
+  }, {} as Record<string, T[]>);
+}
+
 // Sortiert absteigend nach Gesamt-P&L — für Instrument/Setup/Konto, wo die
 // Reihenfolge selbst eine Aussage ist (bester zuerst).
 export function toStatsRows(groups: Record<string, Trade[]>): StatsRow[] {

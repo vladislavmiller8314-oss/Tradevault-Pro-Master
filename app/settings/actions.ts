@@ -45,7 +45,7 @@ export async function saveWidgetPreferences(formData: FormData) {
   redirect("/settings?widgetSaved=1");
 }
 
-export async function saveMusicPreference(formData: FormData) {
+export async function addMusicLink(formData: FormData) {
   const supabase = createClient();
   const {
     data: { user },
@@ -55,24 +55,34 @@ export async function saveMusicPreference(formData: FormData) {
     redirect("/login");
   }
 
-  const musicProvider = ((formData.get("musicProvider") as string) || "none") as MusicProvider;
-  let musicUrl = (formData.get("musicUrl") as string) || null;
+  const provider = (formData.get("musicProvider") as string) as MusicProvider;
+  let url = ((formData.get("musicUrl") as string) || "").trim();
+  const label = ((formData.get("musicLabel") as string) || "").trim().slice(0, 60) || null;
 
-  if (musicProvider !== "none" && musicUrl) {
-    musicUrl = await resolveShareLink(musicUrl);
-
-    if (!getMusicEmbedUrl(musicProvider, musicUrl)) {
-      redirect(
-        `/settings?musicError=${encodeURIComponent(
-          "Dieser Link wurde nicht erkannt. Bitte den vollständigen Link von der Track- oder Playlist-Seite einfügen (z. B. open.spotify.com/...)."
-        )}`
-      );
-    }
+  if (!provider || !url) {
+    redirect(`/settings?musicError=${encodeURIComponent("Bitte Anbieter und Link angeben")}`);
   }
 
-  const { error } = await supabase
-    .from("profiles")
-    .upsert({ id: user.id, music_provider: musicProvider, music_url: musicUrl }, { onConflict: "id" });
+  const { count } = await supabase
+    .from("music_links")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  if ((count ?? 0) >= 15) {
+    redirect(`/settings?musicError=${encodeURIComponent("Maximal 15 Links — bitte erst welche entfernen")}`);
+  }
+
+  url = await resolveShareLink(url);
+
+  if (!getMusicEmbedUrl(provider, url)) {
+    redirect(
+      `/settings?musicError=${encodeURIComponent(
+        "Dieser Link wurde nicht erkannt. Bitte den vollständigen Link von der Track- oder Playlist-Seite einfügen (z. B. open.spotify.com/...)."
+      )}`
+    );
+  }
+
+  const { error } = await supabase.from("music_links").insert({ user_id: user.id, provider, url, label });
 
   if (error) {
     redirect(`/settings?musicError=${encodeURIComponent(error.message)}`);
@@ -80,6 +90,24 @@ export async function saveMusicPreference(formData: FormData) {
 
   revalidatePath("/", "layout");
   redirect("/settings?musicSaved=1");
+}
+
+export async function removeMusicLink(formData: FormData) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const linkId = formData.get("linkId") as string;
+
+  await supabase.from("music_links").delete().eq("id", linkId).eq("user_id", user.id);
+
+  revalidatePath("/", "layout");
+  redirect("/settings?musicRemoved=1");
 }
 
 export async function saveLeaderboardPreference(formData: FormData) {
@@ -139,4 +167,34 @@ export async function saveTradingRules(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/settings");
   redirect(`/settings?rulesSaved=1&rulesCount=${rules.length}`);
+}
+
+export async function saveStrategies(formData: FormData) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const raw = (formData.get("strategies") as string) || "";
+  const strategies = raw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 30); // Sicherheitsgrenze, damit das Widget nicht ausufert
+
+  const { error } = await supabase
+    .from("profiles")
+    .upsert({ id: user.id, strategies }, { onConflict: "id" });
+
+  if (error) {
+    redirect(`/settings?strategiesError=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/settings");
+  redirect(`/settings?strategiesSaved=1&strategiesCount=${strategies.length}`);
 }

@@ -1,11 +1,22 @@
 import { clsx } from "clsx";
 import type { StatsRow } from "@/lib/stats";
 
-export function StatsTable({ title, rows, firstCol }: { title: string; rows: StatsRow[]; firstCol: string }) {
+export function StatsTable({
+  title,
+  rows,
+  firstCol,
+  note,
+}: {
+  title: string;
+  rows: StatsRow[];
+  firstCol: string;
+  note?: string;
+}) {
   return (
     <div className="rounded-panel bg-panel-raised border border-panel-line overflow-hidden">
-      <div className="px-4 py-3 text-xs uppercase tracking-wider text-ink-muted border-b border-panel-line">
-        {title}
+      <div className="px-4 py-3 border-b border-panel-line">
+        <div className="text-xs uppercase tracking-wider text-ink-muted">{title}</div>
+        {note && <div className="text-[10px] text-ink-faint mt-0.5">{note}</div>}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">

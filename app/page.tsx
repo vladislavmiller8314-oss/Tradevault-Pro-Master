@@ -6,6 +6,7 @@ import { EquityCurve } from "@/components/EquityCurve";
 import { RecentTrades } from "@/components/RecentTrades";
 import { AccountsOverview } from "@/components/AccountsOverview";
 import { TradingRulesWidget } from "@/components/TradingRulesWidget";
+import { StrategyListWidget } from "@/components/StrategyListWidget";
 import { TradingViewMarketOverview } from "@/components/TradingViewMarketOverview";
 import { InvestingEconomicCalendar } from "@/components/InvestingEconomicCalendar";
 import { AppShell } from "@/components/AppShell";
@@ -65,8 +66,7 @@ export default async function DashboardPage({
 
   const shellProps = {
     userEmail: user.email,
-    musicProvider: profile.musicProvider,
-    musicUrl: profile.musicUrl,
+    musicLinks: profile.musicLinks,
   };
 
   if (accounts.length === 0) {
@@ -97,7 +97,8 @@ export default async function DashboardPage({
     on("accounts_overview") ||
     on("market_monitor") ||
     on("economic_calendar") ||
-    on("trading_rules");
+    on("trading_rules") ||
+    on("strategies");
 
   return (
     <AppShell {...shellProps}>
@@ -192,9 +193,10 @@ export default async function DashboardPage({
                 </div>
               ))}
             {on("accounts_overview") && <AccountsOverview accounts={visibleAccounts} />}
-            {(on("market_monitor") || on("economic_calendar") || on("trading_rules")) && (
+            {(on("market_monitor") || on("economic_calendar") || on("trading_rules") || on("strategies")) && (
               <div className="space-y-4">
                 {on("trading_rules") && <TradingRulesWidget rules={profile.tradingRules} />}
+                {on("strategies") && <StrategyListWidget strategies={profile.strategies} />}
                 {on("market_monitor") && <TradingViewMarketOverview />}
                 {on("economic_calendar") && <InvestingEconomicCalendar />}
               </div>
